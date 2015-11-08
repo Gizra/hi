@@ -4,14 +4,19 @@ import Effects exposing (Effects)
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
+import String exposing (length, repeat)
 
 
 -- MODEL
 
-type alias Model = String
+type alias Model =
+  { pinCode : String
+  }
 
 initialModel : Model
-initialModel = ""
+initialModel =
+  { pinCode = ""
+  }
 
 init : (Model, Effects Action)
 init =
@@ -27,22 +32,28 @@ type Action = AddDigit Int
 update : Action -> Model -> (Model, Effects Action)
 update action model =
   case action of
-    AddDigit digit ->
-      ( model ++ toString(digit)
+    AddDigit digit -> (
+      { model |
+          pinCode <-
+            if length model.pinCode < 4
+              then model.pinCode ++ toString(digit)
+              else model.pinCode
+      }
       , Effects.none
       )
-
 
 -- VIEW
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-  div []
-    [ div [class "numbers"]
-      [ button [ onClick address (AddDigit 1) ] [ text "1" ]
-      , button [ onClick address (AddDigit 2) ] [ text "2" ]
-      , button [ onClick address (AddDigit 3) ] [ text "3" ]
-      , button [ onClick address (AddDigit 4) ] [ text "4" ]
+  div [class "number-pad"]
+    [ div [class "number-buttons"]
+    ( List.map digitButton [1..9] )
+    , div [ ] [ text <| repeat (length model.pinCode) "*" ]
     ]
-    , div [ ] [ text (toString model) ]
-    ]
+
+
+digitButton : Int -> Html
+digitButton digit =
+  -- button [ onClick address (AddDigit 1) ] [ text "1" ]
+  button [ ] [ text <| toString digit ]
