@@ -77,12 +77,10 @@ view address model =
     digitButton digit =
       button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
   in
-  div [class "number-pad"]
+  div
+    [ class "number-pad" ]
     [ div
         [ class "number-buttons" ]
-        (List.map digitButton [1..9])
-
-
-
-    , div [ ] [ text <| repeat (length model.pinCode) "*" ]
+        ( List.map digitButton [1..9] )
+        , div [] [ text <| repeat (length model.pinCode) "*" ]
     ]
