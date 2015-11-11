@@ -47,26 +47,25 @@ update action model =
   case action of
     AddDigit digit ->
       let
-        (pinCode', effects) =
+        pinCode' =
           if length model.pinCode < 4
-            then
-              ( model.pinCode ++ toString(digit)
-              , Effects.none
-              )
-            else
-              ( model.pinCode
-              , Task.succeed SubmitCode |> Effects.task
-              )
+            then model.pinCode ++ toString(digit)
+            else ""
+        effects' =
+          if length model.pinCode == 3
+            then Task.succeed SubmitCode |> Effects.task
+            else Effects.none
       in
         ( { model | pinCode <- pinCode' }
-        , effects
+        , effects'
         )
 
     SubmitCode ->
       let
-        d = Debug.log "SubmitCode" True
+        _ = Debug.log model.pinCode True
       in
-      ( model, Effects.none )
+        ( { model | pinCode <- "" }
+        , Effects.none )
 
 -- VIEW
 
@@ -76,7 +75,7 @@ view address model =
     [ class "number-pad" ]
     [ div
         [ class "number-buttons" ]
-        ( List.map (digitButton address) [1..9] )
+        ( List.map (digitButton address) [0..9] |> List.reverse )
         , div [] [ text <| repeat (length model.pinCode) "*" ]
     ]
 
