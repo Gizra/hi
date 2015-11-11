@@ -1,12 +1,14 @@
 module Hi where
 
+import Config
 import Effects exposing (Effects)
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Http exposing (Error)
+import Http exposing (Error, get)
 import String exposing (length, repeat)
 import Task exposing (Task, succeed)
+import Json.Decode as Json exposing ((:=))
 
 import Debug
 
@@ -63,22 +65,41 @@ update action model =
     SubmitCode ->
       let
         _ = Debug.log model.pinCode True
+--        url : String
+--        url = Config.backendUrl ++ "/api/clock/in"
+
       in
         ( { model | pinCode <- "" }
-        , Effects.none )
+        , lookupZipCode "123"
+        |> Task.toResult
+        |> Effects.task)
 
 -- VIEW
 
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
-    [ class "number-pad" ]
+    [ class "keypad" ]
     [ div
-        [ class "number-buttons" ]
-        ( List.map (digitButton address) [0..9] |> List.reverse )
-        , div [] [ text <| repeat (length model.pinCode) "*" ]
+      [ class "number-buttons" ]
+      ( List.map (digitButton address) [0..9] |> List.reverse )
     ]
 
 digitButton : Signal.Address Action -> Int -> Html
 digitButton address digit =
   button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
+
+
+lookupZipCode : String -> Task Http.Error (List String)
+lookupZipCode query =
+  Http.get places ("http://api.zippopotam.us/us/" ++ query)
+
+
+places : Json.Decoder (List String)
+places =
+  let place =
+    Json.object2 (\city state -> city ++ ", " ++ state)
+        ("place name" := Json.string)
+        ("state" := Json.string)
+  in
+    "places" := Json.list place
