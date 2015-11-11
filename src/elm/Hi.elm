@@ -72,15 +72,14 @@ update action model =
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-  let
-    digitButton : Int -> Html
-    digitButton digit =
-      button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
-  in
   div
     [ class "number-pad" ]
     [ div
         [ class "number-buttons" ]
-        ( List.map digitButton [1..9] )
+        ( List.map (digitButton address) [1..9] )
         , div [] [ text <| repeat (length model.pinCode) "*" ]
     ]
+
+digitButton : Signal.Address Action -> Int -> Html
+digitButton address digit =
+  button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
