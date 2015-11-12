@@ -1,14 +1,15 @@
 module Hi where
 
-import Config
-import Effects exposing (Effects)
+import Config exposing (backendUrl)
+import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Http exposing (Error, get)
-import String exposing (length, repeat)
-import Task exposing (Task, succeed)
-import Json.Decode as Json exposing ((:=))
+import Http
+import Json.Encode as JE exposing (string, Value)
+import Json.Decode as JD exposing ((:=))
+import String exposing (length)
+import Task
 
 import Debug
 
@@ -21,13 +22,13 @@ type Status =
   | HttpError Http.Error
 
 type alias Model =
-  { pinCode : String
+  { pincode : String
   , status : Status
   }
 
 initialModel : Model
 initialModel =
-  { pinCode = ""
+  { pincode = ""
   , status = Init
   }
 
@@ -43,37 +44,53 @@ init =
 type Action
   = AddDigit Int
   | SubmitCode
+  | ShowResponse (Result Http.Error String)
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
   case action of
     AddDigit digit ->
       let
-        pinCode' =
-          if length model.pinCode < 4
-            then model.pinCode ++ toString(digit)
+        pincode' =
+          if length model.pincode < 4
+            then model.pincode ++ toString(digit)
             else ""
         effects' =
-          if length model.pinCode == 3
+          if length model.pincode == 3
             then Task.succeed SubmitCode |> Effects.task
             else Effects.none
       in
-        ( { model | pinCode <- pinCode' }
+        ( { model | pincode <- pincode' }
         , effects'
         )
 
     SubmitCode ->
       let
-        _ = Debug.log model.pinCode True
---        url : String
---        url = Config.backendUrl ++ "/api/clock/in"
+        url : String
+        url = Config.backendUrl ++ "/api/"
 
       in
-        ( { model | pinCode <- "" }
-        , lookupZipCode "123"
-        |> Task.toResult
-        |> Effects.task)
+        if model.status == Fetching || model.status == Fetched
+          then
+            (model, Effects.none)
+          else
+            ( { model
+              | status <- Fetching
+              }
+            , getJson url "hi"
+            )
 
+
+    ShowResponse result ->
+      case result of
+        Ok token ->
+          ( { model | status <- Fetched }
+          , Effects.none
+          )
+        Err msg ->
+          ( { model | status <- HttpError msg }
+          , Effects.none
+          )
 -- VIEW
 
 view : Signal.Address Action -> Model -> Html
@@ -90,16 +107,23 @@ digitButton address digit =
   button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
 
 
-lookupZipCode : String -> Task Http.Error (List String)
-lookupZipCode query =
-  Http.get places ("http://api.zippopotam.us/us/" ++ query)
+-- EFFECTS
 
 
-places : Json.Decoder (List String)
-places =
-  let place =
-    Json.object2 (\city state -> city ++ ", " ++ state)
-        ("place name" := Json.string)
-        ("state" := Json.string)
-  in
-    "places" := Json.list place
+getJson : String -> String -> Effects Action
+getJson url credentials =
+  Http.send Http.defaultSettings
+    { verb = "GET"
+    , headers = []
+    , url = url
+    , body = Http.empty
+    }
+    |> Http.fromJson decodePincode
+    |> Task.toResult
+    |> Task.map ShowResponse
+    |> Effects.task
+
+
+decodePincode : JD.Decoder String
+decodePincode =
+  JD.at ["pincode"] <| JD.string
