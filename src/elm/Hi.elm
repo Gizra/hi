@@ -3,11 +3,10 @@ module Hi where
 import Config exposing (backendUrl)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Http
-import Json.Encode as JE exposing (string, Value)
-import Json.Decode as JD exposing ((:=))
+import Json.Decode
 import String exposing (length)
 import Task
 
@@ -109,7 +108,6 @@ digitButton address digit =
 
 -- EFFECTS
 
-
 getJson : String -> String -> Effects Action
 getJson url credentials =
   Http.send Http.defaultSettings
@@ -124,6 +122,6 @@ getJson url credentials =
     |> Effects.task
 
 
-decodePincode : JD.Decoder String
+decodePincode : Json.Decode.Decoder String
 decodePincode =
-  JD.at ["pincode"] <| JD.string
+  Json.Decode.at ["pincode"] <| Json.Decode.string
