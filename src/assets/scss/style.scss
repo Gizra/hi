@@ -47,6 +47,15 @@ body {
       }
     }
   }
+
+  .preview div {
+    display: inline-block;
+    width: $button_size;
+    height: $button_size;
+    border: 1px solid gainsboro;
+    text-align: center;
+    line-height: $button_size;
+  }
 }
 
 #status-message, .model-debug {

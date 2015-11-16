@@ -85,10 +85,7 @@ update action model =
         url : String
         url = Config.backendUrl ++ "/api/v1.0/session"
       in
-        ( { model
-          | pincode <- ""
-          , status <- Fetching
-          }
+        ( { model | status <- Fetching }
         , getJson url model.pincode
         )
 
@@ -100,7 +97,10 @@ update action model =
             -- TODO: How do I get the response here?
             message = ""
           in
-            ( { model | status <- Fetched }
+            ( { model
+              | status <- Fetched
+              , pincode <- ""
+              }
             , Task.succeed (SetMessage (Success message)) |> Effects.task
             )
         Err error ->
@@ -108,7 +108,10 @@ update action model =
             message =
               getErrorMessageFromHttpResponse error
           in
-            ( { model | status <- HttpError error }
+            ( { model
+              | status <- HttpError error
+              , pincode <- ""
+              }
             , Task.succeed (SetMessage <| Error message) |> Effects.task
             )
 
@@ -148,8 +151,11 @@ view address model =
   div
     [ class "keypad" ]
     [ div
-      [ class "number-buttons" ]
-      ( List.map (digitButton address) [0..9] |> List.reverse )
+        [ class "preview" ]
+        ( List.map digitPreview (String.toList model.pincode) )
+    , div
+        [ class "number-buttons" ]
+        ( List.map (digitButton address) [0..9] |> List.reverse )
     , (viewMessage model.message)
     , div [ class "model-debug" ] [ text (toString model) ]
     ]
@@ -168,6 +174,10 @@ viewMessage message =
 digitButton : Signal.Address Action -> Int -> Html
 digitButton address digit =
   button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
+
+digitPreview : Char -> Html
+digitPreview digit =
+  div [ ] [ text <| toString digit ]
 
 
 -- EFFECTS
