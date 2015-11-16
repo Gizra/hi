@@ -85,24 +85,24 @@ update action model =
         url : String
         url = Config.backendUrl ++ "/api/v1.0/session"
       in
-        if model.status == Fetching || model.status == Fetched
-          then
-            (model, Effects.none)
-          else
-            ( { model
-              | pincode <- ""
-              , status <- Fetching
-              }
-            , getJson url model.pincode
-            )
+        ( { model
+          | pincode <- ""
+          , status <- Fetching
+          }
+        , getJson url model.pincode
+        )
 
 
     ShowResponse result ->
       case result of
         Ok session ->
-          ( { model | status <- Fetched }
-          , Task.succeed (SetMessage (Success "Success")) |> Effects.task
-          )
+          let
+            -- TODO: How do I get the response here?
+            message = ""
+          in
+            ( { model | status <- Fetched }
+            , Task.succeed (SetMessage (Success message)) |> Effects.task
+            )
         Err error ->
           let
             message =
@@ -123,11 +123,13 @@ getErrorMessageFromHttpResponse error =
     Http.Timeout ->
       "Connection has timed out"
 
-    Http.BadResponse code _ ->
-      if | code == 401 -> "Wrong username or password"
+    Http.BadResponse code message ->
+      -- TODO: Print the error's title
+      if | code == 400 -> "Wrong pincode"
+         | code == 401 -> "Wrong username or password"
          | code == 429 -> "Too many login requests with the wrong username or password. Wait a few hours before trying again"
-         | code >= 500 -> "Some error has occured on the server"
-         | otherwise -> "Unknow error has occured"
+         | code >= 500 -> "Some error has occurred on the server"
+         | otherwise -> "Unknown error has occurred"
 
     Http.NetworkError ->
       "A network error has occured"
@@ -146,9 +148,10 @@ view address model =
   div
     [ class "keypad" ]
     [ div
-        [ class "number-buttons" ]
-        ( List.map (digitButton address) [0..9] |> List.reverse )
+      [ class "number-buttons" ]
+      ( List.map (digitButton address) [0..9] |> List.reverse )
     , (viewMessage model.message)
+    , div [ class "model-debug" ] [ text (toString model) ]
     ]
 
 viewMessage : Message -> Html
@@ -161,7 +164,6 @@ viewMessage message =
         Success msg -> ("success", msg)
   in
     div [ id "status-message", class className ] [ text string ]
-
 
 digitButton : Signal.Address Action -> Int -> Html
 digitButton address digit =
