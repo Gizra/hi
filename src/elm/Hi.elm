@@ -6,7 +6,8 @@ import Html exposing (..)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Http
-import Json.Decode
+import Json.Decode as JD
+import Json.Encode as JE
 import String exposing (length)
 import Task
 
@@ -66,7 +67,7 @@ update action model =
     SubmitCode ->
       let
         url : String
-        url = Config.backendUrl ++ "/api/"
+        url = Config.backendUrl ++ "/api/v1.0/session?access_token=" ++ "lXlTh7PR30mQN316SN3LofK95krQjCltBnygfjkleyQ"
 
       in
         if model.status == Fetching || model.status == Fetched
@@ -74,9 +75,10 @@ update action model =
             (model, Effects.none)
           else
             ( { model
-              | status <- Fetching
+              | pincode <- ""
+              , status <- Fetching
               }
-            , getJson url "hi"
+            , getJson url model.pincode
             )
 
 
@@ -109,12 +111,37 @@ digitButton address digit =
 -- EFFECTS
 
 getJson : String -> String -> Effects Action
+getJson url pincode =
+  Http.post
+    decodeAccessToken
+    (url)
+    (Http.string <| dataToJson pincode )
+    |> Task.toResult
+    |> Task.map ShowResponse
+    |> Effects.task
+
+
+dataToJson : String -> String
+dataToJson code =
+  JE.encode 0
+    <| JE.object
+        [ ("pincode", JE.string code) ]
+
+decodeAccessToken : JD.Decoder String
+decodeAccessToken =
+  JD.at ["access_token"] <| JD.string
+
+
+{--
+getJson : String -> String -> Effects Action
 getJson url credentials =
   Http.send Http.defaultSettings
-    { verb = "GET"
-    , headers = []
+    { verb = "POST"
+    , headers = [ ("access-token", "lXlTh7PR30mQN316SN3LofK95krQjCltBnygfjkleyQ") ]
     , url = url
-    , body = Http.empty
+    , body = Http.string <| JE.encode 0
+      <| JE.object
+          [ ("pincode", "5555") ]
     }
     |> Http.fromJson decodePincode
     |> Task.toResult
@@ -125,3 +152,4 @@ getJson url credentials =
 decodePincode : Json.Decode.Decoder String
 decodePincode =
   Json.Decode.at ["pincode"] <| Json.Decode.string
+--}
