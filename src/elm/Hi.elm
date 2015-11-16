@@ -15,6 +15,11 @@ import Debug
 
 -- MODEL
 
+type Message =
+  Empty
+  | Error String
+  | Success String
+
 type Status =
   Init
   | Fetching
@@ -24,12 +29,14 @@ type Status =
 type alias Model =
   { pincode : String
   , status : Status
+  , message : Message
   }
 
 initialModel : Model
 initialModel =
   { pincode = ""
   , status = Init
+  , message = Empty
   }
 
 init : (Model, Effects Action)
@@ -45,6 +52,7 @@ type Action
   = AddDigit Int
   | SubmitCode
   | ShowResponse (Result Http.Error String)
+  | SetMessage Message
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
@@ -67,7 +75,7 @@ update action model =
     SubmitCode ->
       let
         url : String
-        url = Config.backendUrl ++ "/api/v1.0/session?access_token=" ++ "lXlTh7PR30mQN316SN3LofK95krQjCltBnygfjkleyQ"
+        url = Config.backendUrl ++ "/api/v1.0/session"
 
       in
         if model.status == Fetching || model.status == Fetched
@@ -86,22 +94,40 @@ update action model =
       case result of
         Ok token ->
           ( { model | status <- Fetched }
-          , Effects.none
+          , Task.succeed (SetMessage (Success "Success")) |> Effects.task
           )
         Err msg ->
           ( { model | status <- HttpError msg }
-          , Effects.none
+          , Task.succeed (SetMessage (Error "something is wrong")) |> Effects.task
           )
+
+    SetMessage message ->
+      ( { model | message <- message }
+      , Effects.none
+      )
 -- VIEW
 
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
     [ class "keypad" ]
-    [ div
-      [ class "number-buttons" ]
-      ( List.map (digitButton address) [0..9] |> List.reverse )
+    [ (viewMessage model.message)
+    ,  div
+        [ class "number-buttons" ]
+        ( List.map (digitButton address) [0..9] |> List.reverse )
     ]
+
+viewMessage : Message -> Html
+viewMessage message =
+  let
+    (className, string) =
+      case message of
+        Empty -> ("none", "")
+        Error msg -> ("error", msg)
+        Success msg -> ("success", msg)
+  in
+    div [ class className ] [ text string ]
+
 
 digitButton : Signal.Address Action -> Int -> Html
 digitButton address digit =
@@ -112,13 +138,18 @@ digitButton address digit =
 
 getJson : String -> String -> Effects Action
 getJson url pincode =
-  Http.post
-    decodeAccessToken
-    (url)
-    (Http.string <| dataToJson pincode )
+  Http.send Http.defaultSettings
+    { verb = "POST"
+    , headers = [ ("access-token", "lXlTh7PR30mQN316SN3LofK95krQjCltBnygfjkleyQ") ]
+    , url = url
+    , body = ( Http.string <| dataToJson pincode )
+    }
+    |> Http.fromJson decodePincode
     |> Task.toResult
     |> Task.map ShowResponse
     |> Effects.task
+
+
 
 
 dataToJson : String -> String
@@ -132,24 +163,6 @@ decodeAccessToken =
   JD.at ["access_token"] <| JD.string
 
 
-{--
-getJson : String -> String -> Effects Action
-getJson url credentials =
-  Http.send Http.defaultSettings
-    { verb = "POST"
-    , headers = [ ("access-token", "lXlTh7PR30mQN316SN3LofK95krQjCltBnygfjkleyQ") ]
-    , url = url
-    , body = Http.string <| JE.encode 0
-      <| JE.object
-          [ ("pincode", "5555") ]
-    }
-    |> Http.fromJson decodePincode
-    |> Task.toResult
-    |> Task.map ShowResponse
-    |> Effects.task
-
-
-decodePincode : Json.Decode.Decoder String
+decodePincode : JD.Decoder String
 decodePincode =
-  Json.Decode.at ["pincode"] <| Json.Decode.string
---}
+  JD.at ["pincode"] <| JD.string
