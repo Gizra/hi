@@ -51,6 +51,7 @@ init =
   , Effects.none
   )
 
+pincodeLength = 4
 
 -- UPDATE
 
@@ -69,18 +70,23 @@ update action model =
         _ = Debug.log "AddDigit" digit
 
         pincode' =
-          if length model.pincode < 4
+          if length model.pincode < pincodeLength
             then model.pincode ++ toString(digit)
             else ""
+
         effects' =
-          if length model.pincode == 3
+          -- Calling submit code when pincode length is one less than the needed
+          -- length, since at this point the model isn't updated yet with the
+          -- current digit.
+          if length model.pincode == pincodeLength - 1
             then Task.succeed SubmitCode |> Effects.task
             else Effects.none
+
       in
         ( { model
           | pincode <- pincode'
-          , status <- Init
           , message <- Empty
+          , status <- Init
           }
         , effects'
         )
@@ -89,6 +95,7 @@ update action model =
       let
         url : String
         url = Config.backendUrl ++ "/api/v1.0/session"
+
       in
         ( { model | status <- Fetching }
         , getJson url model.pincode
