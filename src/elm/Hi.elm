@@ -13,6 +13,7 @@ import Task
 
 import Debug
 
+
 -- MODEL
 
 type Message =
@@ -65,8 +66,7 @@ update action model =
   case action of
     AddDigit digit ->
       let
-
-        d = Debug.log "AddDigit" digit
+        _ = Debug.log "AddDigit" digit
 
         pincode' =
           if length model.pincode < 4
@@ -77,16 +77,13 @@ update action model =
             then Task.succeed SubmitCode |> Effects.task
             else Effects.none
       in
-        if model.status == Init
-          then
-            ( { model
-              | pincode <- pincode'
-              , message <- Empty
-              }
-            , effects'
-            )
-          else
-            ( model, Effects.none )
+        ( { model
+          | pincode <- pincode'
+          , status <- Init
+          , message <- Empty
+          }
+        , effects'
+        )
 
     SubmitCode ->
       let
@@ -100,10 +97,9 @@ update action model =
 
     UpdateDataFromServer result ->
       case result of
-        Ok val ->
+        Ok response ->
           let
-            -- TODO: How do I get the response here?
-            message = val.employee
+            message = response.employee ++ " " ++ response.action
           in
             ( { model
               | status <- Fetched
@@ -128,8 +124,6 @@ update action model =
       , Effects.none
       )
 
-    Reset ->
-      init
 
 getErrorMessageFromHttpResponse : Http.Error -> String
 getErrorMessageFromHttpResponse error =
@@ -140,7 +134,7 @@ getErrorMessageFromHttpResponse error =
     Http.BadResponse code message ->
       -- TODO: Print the error's title
       if | code == 400 -> "Wrong pincode"
-         | code == 401 -> "Wrong username or password"
+         | code == 401 -> "Invalid access token"
          | code == 429 -> "Too many login requests with the wrong username or password. Wait a few hours before trying again"
          | code >= 500 -> "Some error has occurred on the server"
          | otherwise -> "Unknown error has occurred"
@@ -197,7 +191,7 @@ getJson : String -> String -> Effects Action
 getJson url pincode =
   Http.send Http.defaultSettings
     { verb = "POST"
-    , headers = [ ("access-token", "zOPWzC8_8IxoKfnGtjHCikZ-rk70HdPoI_oAsco92sI") ]
+    , headers = [ ("access-token", "stF0R_j4DTYlpycjoXCCH0zezfKBJYq1sx_ULQFsYy8") ]
     , url = url
     , body = ( Http.string <| dataToJson pincode )
     }
