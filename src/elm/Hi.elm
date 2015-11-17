@@ -56,14 +56,18 @@ init =
 type Action
   = AddDigit Int
   | SubmitCode
-  | ShowResponse (Result Http.Error Response)
+  | UpdateDataFromServer (Result Http.Error Response)
   | SetMessage Message
+  | Reset
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
   case action of
     AddDigit digit ->
       let
+
+        d = Debug.log "AddDigit" digit
+
         pincode' =
           if length model.pincode < 4
             then model.pincode ++ toString(digit)
@@ -73,12 +77,16 @@ update action model =
             then Task.succeed SubmitCode |> Effects.task
             else Effects.none
       in
-        ( { model
-          | pincode <- pincode'
-          , message <- Empty
-          }
-        , effects'
-        )
+        if model.status == Init
+          then
+            ( { model
+              | pincode <- pincode'
+              , message <- Empty
+              }
+            , effects'
+            )
+          else
+            ( model, Effects.none )
 
     SubmitCode ->
       let
@@ -90,12 +98,12 @@ update action model =
         )
 
 
-    ShowResponse result ->
+    UpdateDataFromServer result ->
       case result of
-        Ok session ->
+        Ok val ->
           let
             -- TODO: How do I get the response here?
-            message = ""
+            message = val.employee
           in
             ( { model
               | status <- Fetched
@@ -119,6 +127,9 @@ update action model =
       ( { model | message <- message }
       , Effects.none
       )
+
+    Reset ->
+      init
 
 getErrorMessageFromHttpResponse : Http.Error -> String
 getErrorMessageFromHttpResponse error =
@@ -186,13 +197,13 @@ getJson : String -> String -> Effects Action
 getJson url pincode =
   Http.send Http.defaultSettings
     { verb = "POST"
-    , headers = [ ("access-token", "BgIoWiCd_5WwC4R3tq3tjdBUPUPYZtUYA0AZObkFMBg") ]
+    , headers = [ ("access-token", "zOPWzC8_8IxoKfnGtjHCikZ-rk70HdPoI_oAsco92sI") ]
     , url = url
     , body = ( Http.string <| dataToJson pincode )
     }
     |> Http.fromJson decodeResponse
     |> Task.toResult
-    |> Task.map ShowResponse
+    |> Task.map UpdateDataFromServer
     |> Effects.task
 
 dataToJson : String -> String
