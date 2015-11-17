@@ -10,7 +10,7 @@ import Json.Decode as Json exposing ((:=))
 import Json.Encode as JE
 import String exposing (length)
 import Task
-
+import Char
 import Debug
 
 
@@ -53,6 +53,7 @@ init =
 
 pincodeLength = 4
 
+
 -- UPDATE
 
 type Action
@@ -72,7 +73,7 @@ update action model =
         pincode' =
           if length model.pincode < pincodeLength
             then model.pincode ++ toString(digit)
-            else ""
+            else model.pincode
 
         effects' =
           -- Calling submit code when pincode length is one less than the needed
@@ -189,7 +190,9 @@ digitButton address digit =
 
 digitPreview : Char -> Html
 digitPreview digit =
-  div [ ] [ text <| toString digit ]
+    -- TODO: Converting the char to int, to avoid the quotes when printing it.
+    -- Is there a proper way to do that?
+    div [ ] [ text <| toString <| (Char.toCode digit) - (Char.toCode '0') ]
 
 
 -- EFFECTS
