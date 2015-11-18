@@ -31,6 +31,6 @@ addDigitOnFullPincode val =
 
 all : Test
 all =
-  suite "All Event tests"
+  suite "All App tests"
     [ addDigitSuite
     ]
