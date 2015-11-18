@@ -1,4 +1,4 @@
-module Hi where
+module App where
 
 import Config exposing (backendUrl)
 import Effects exposing (Effects, Never)
