@@ -413,7 +413,24 @@ view address model =
           , text  <| " " ++ project.name
         ]
 
--- clear-btn digit
+
+    projects = span [] (List.map projectsButtons model.projects)
+
+
+    digits =
+      let
+        digitButton digit =
+          button
+              [ class "clear-btn digit"
+                , onClick address (AddDigit digit)
+              ]
+              [ text <| toString digit ]
+      in
+        div
+          [ class "numbers-pad" ]
+          [ span [] ( List.map digitButton [0..9] |> List.reverse ) ]
+
+
   in
     div
         [ class "container" ]
@@ -422,29 +439,17 @@ view address model =
             [ pincode
               , date
               , ledLight
-              , div
-                  [ class "col-xs-5 text-center" ]
-                  [ span [] (List.map projectsButtons model.projects)
-                    , div [ class "numbers-pad" ] []
-                  ]
+              , div [ class "col-xs-5 text-center" ] [ projects , digits ]
               , message
             ]
-        , viewMainContent address model
-        , (viewMessage model.message)
-        , div [ class "model-debug" ] [ text <| toString model ]
+        -- Debug
+        , div
+            [ class "model-debug" ]
+            [ text <| toString model
+            , (viewMessage model.message)
+            ]
         ]
 
-
-
-viewMainContent : Signal.Address Action -> Model -> Html
-viewMainContent address model =
-  let
-    digitButton digit =
-      button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
-  in
-    div
-      [ class "numbers-pad" ]
-      [ span [] ( List.map digitButton [0..9] ) ]
 
 viewMessage : Message -> Html
 viewMessage message =
