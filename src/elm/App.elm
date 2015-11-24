@@ -45,6 +45,7 @@ type alias Response =
 type alias Project =
   { name : String
     , id : Int
+    , selected : Bool
   }
 
 type alias Model =
@@ -66,7 +67,10 @@ initialModel =
   , date = Nothing
   , connected = False
   , projects = [
-    { name = "Negawatt project", id = 1 }
+      { name = "Negawatt project"
+        , id = 1
+        , selected = False
+      }
     ]
   }
 
@@ -89,6 +93,7 @@ type Action
   | SubmitCode
   | Tick
   | UpdateDataFromServer (Result Http.Error Response)
+  | SetProject Project
 
 
 update : Action -> Model -> (Model, Effects Action)
@@ -187,6 +192,12 @@ update action model =
 
     SetMessage message ->
       ( { model | message <- message }
+      , Effects.none
+      )
+
+
+    SetProject project ->
+      ( { model | projects <- .projects model }
       , Effects.none
       )
 
