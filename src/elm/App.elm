@@ -6,7 +6,7 @@ import Date exposing (..)
 import Date.Format as DF exposing (format)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, id)
+import Html.Attributes exposing (class, classList, id, disabled)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json exposing ((:=))
@@ -87,6 +87,7 @@ pincodeLength = 4
 
 type Action
   = AddDigit Int
+  | DeleteDigit
   | Reset
   | SetDate Time.Time
   | SetMessage Message
@@ -120,6 +121,22 @@ update action model =
           , status <- Init
           }
         , effects'
+        )
+
+    DeleteDigit ->
+      let
+        pincode' =
+          let
+            pincodeLength = length model.pincode
+
+          in
+            String.slice 0 (pincodeLength - 1) model.pincode
+
+      in
+        ( { model
+          | pincode <- pincode'
+          }
+        , Effects.none
         )
 
     SubmitCode ->
@@ -241,10 +258,6 @@ getErrorMessageFromHttpResponse error =
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
-    digitButton digit =
-      button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
-
-
     ledLight =
       let
         className =
@@ -401,7 +414,6 @@ view address model =
 
     projectsButtons : Project -> Html
     projectsButtons project =
-
       let
         className = [
           ("-with-icon clear-btn project", True)
@@ -418,6 +430,52 @@ view address model =
         ]
 
 
+    projects = span [] (List.map projectsButtons model.projects)
+
+
+    padButtons =
+      let
+        digitButton digit =
+          let
+          -- "Zero" button should be twice the size.
+            className = [
+              ("clear-btn digit", True)
+              , ("-double", digit == 0)
+            ]
+
+
+          in
+          button
+              [ classList className
+                , onClick address (AddDigit digit)
+              ]
+              [ text <| toString digit ]
+
+
+        deleteButton =
+          let
+            deleteDisable =
+              if length model.pincode == 0
+                then True
+                else False
+
+          in
+            button
+                [ class "clear-btn -delete"
+                  , onClick address DeleteDigit
+                  , disabled deleteDisable
+                ]
+                [ i [ class "fa fa-long-arrow-left" ] [] ]
+
+
+      in
+        div
+          [ class "numbers-pad" ]
+          [ span [] ( List.map digitButton [0..9] |> List.reverse )
+            , deleteButton
+          ]
+
+
   in
     div
         [ class "container" ]
@@ -428,30 +486,17 @@ view address model =
               , ledLight
               , div
                   [ class "col-xs-5 text-center" ]
-                  [ span [] (List.map projectsButtons model.projects)
-                    , div [ class "numbers-pad" ] []
-                  ]
+                  [ projects, padButtons ]
               , message
             ]
-        , viewMainContent address model
+        -- Debug
+        , div
+            [ class "model-debug" ]
+            [ text <| toString model
+              , (viewMessage model.message)
+            ]
         ]
 
-
-
-viewMainContent : Signal.Address Action -> Model -> Html
-viewMainContent address model =
-  let
-    digitButton digit =
-      button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
-  in
-    div
-      [ class "keypad" ]
-      [ div
-          [ class "number-buttons" ]
-          ( List.map digitButton [0..9] |> List.reverse )
-      , (viewMessage model.message)
-      , div [ class "model-debug" ] [ text <| toString model ]
-      ]
 
 viewMessage : Message -> Html
 viewMessage message =
