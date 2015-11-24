@@ -6,7 +6,7 @@ import Date exposing (..)
 import Date.Format as DF exposing (format)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, id, hidden)
+import Html.Attributes exposing (class, classList, id, hidden)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json exposing ((:=))
@@ -93,7 +93,7 @@ type Action
   | SubmitCode
   | Tick
   | UpdateDataFromServer (Result Http.Error Response)
-  | SetProject Project
+  | SetProject Int
 
 
 update : Action -> Model -> (Model, Effects Action)
@@ -196,10 +196,28 @@ update action model =
       )
 
 
-    SetProject project ->
-      ( { model | projects <- .projects model }
-      , Effects.none
-      )
+    SetProject id ->
+      let
+        toggleProjectSelection project = Nothing
+          -- if id == project.id
+          --   then project.selected = not ( project.selected )
+          --   else project
+
+        updatedProjects =
+          -- List.map toggleProjectSelection model.projects
+
+          [
+            { name = "Negawatt project"
+              , id = 1
+              , selected = True
+            }
+          ]
+
+      in
+        ( { model | projects <- updatedProjects }
+        , Effects.none
+        )
+
 
 
 getErrorMessageFromHttpResponse : Http.Error -> String
@@ -396,11 +414,22 @@ view address model =
 
     projectsButtons : Project -> Html
     projectsButtons project =
-      button
-          [ class"clear-btn -with-icon project"]
-          [ i [ class "fa fa-server icon" ] []
-            , text project.name
-          ]
+
+      let
+        className = [
+          ("-with-icon clear-btn project", True)
+          , ("-active", project.selected)
+        ]
+
+      in
+        button
+            [
+              classList className
+              , onClick address (SetProject project.id)
+            ]
+            [ i [ class "fa fa-server icon" ] []
+              , text project.name
+            ]
 
 
   in
@@ -413,7 +442,7 @@ view address model =
               , ledLight
               , div
                   [ class "col-xs-5 text-center" ]
-                  [ span [] ( List.map projectsButtons model.projects )
+                  [ span [] (List.map projectsButtons model.projects)
                     , div [ class "numbers-pad" ] []
                   ]
               , responseMessage
