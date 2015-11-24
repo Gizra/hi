@@ -68,7 +68,7 @@ initialModel =
   , connected = False
   , projects = [
       { name = "Negawatt project"
-        , id = 1
+        , id = 33
       }
     ]
   , selectedProject = 0
@@ -126,10 +126,10 @@ update action model =
     SubmitCode ->
       let
         url = Config.backendUrl ++ "/api/v1.0/timewatch-punch"
-
+        projectId = toString model.selectedProject
       in
         ( { model | status <- Fetching }
-        , getJson url Config.accessToken model.pincode
+        , getJson url Config.accessToken model.pincode projectId
         )
 
     SetDate time ->
@@ -473,24 +473,26 @@ viewMessage message =
 
 -- EFFECTS
 
-getJson : String -> String -> String -> Effects Action
-getJson url accessToken pincode =
+getJson : String -> String -> String -> String -> Effects Action
+getJson url accessToken pincode projectId =
   Http.send Http.defaultSettings
     { verb = "POST"
     , headers = [ ("access-token", accessToken) ]
     , url = url
-    , body = ( Http.string <| dataToJson pincode )
+    , body = ( Http.string <| dataToJson pincode projectId )
     }
     |> Http.fromJson decodeResponse
     |> Task.toResult
     |> Task.map UpdateDataFromServer
     |> Effects.task
 
-dataToJson : String -> String
-dataToJson code =
+dataToJson : String -> String -> String
+dataToJson code projectId =
   JE.encode 0
     <| JE.object
-        [ ("pincode", JE.string code) ]
+        [ ("pincode", JE.string code)
+        , ("project", JE.string projectId)
+        ]
 
 decodeResponse : Json.Decoder Response
 decodeResponse =
