@@ -327,8 +327,7 @@ view address model =
           ]
 
 
-
-    responseMessage =
+    message =
       let
         -- Adding a "class" to toggle the view display (hide/show).
         visibilityClass =
@@ -437,7 +436,7 @@ view address model =
                   [ span [] (List.map projectsButtons model.projects)
                     , div [ class "numbers-pad" ] []
                   ]
-              , responseMessage
+              , message
             ]
         , viewMainContent address model
         ]
