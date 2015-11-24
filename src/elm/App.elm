@@ -87,6 +87,7 @@ pincodeLength = 4
 
 type Action
   = AddDigit Int
+  | DeleteDigit
   | Reset
   | SetDate Time.Time
   | SetMessage Message
@@ -120,6 +121,17 @@ update action model =
           , status <- Init
           }
         , effects'
+        )
+
+    DeleteDigit ->
+      let
+        pincode' = toString (length model.pincode)
+
+      in
+        ( { model
+          | pincode <- pincode'
+          }
+        , Effects.none
         )
 
     SubmitCode ->
@@ -397,7 +409,6 @@ view address model =
 
     projectsButtons : Project -> Html
     projectsButtons project =
-
       let
         className = [
           ("-with-icon clear-btn project", True)
@@ -445,7 +456,10 @@ view address model =
 
           in
             button
-                [ class "clear-btn -delete", disabled deleteDisable ]
+                [ class "clear-btn -delete"
+                  , onClick address DeleteDigit
+                  , disabled deleteDisable
+                ]
                 [ i [ class "fa fa-long-arrow-left" ] [] ]
 
 
@@ -465,7 +479,9 @@ view address model =
             [ pincode
               , date
               , ledLight
-              , div [ class "col-xs-5 text-center" ] [ projects, padButtons ]
+              , div
+                  [ class "col-xs-5 text-center" ]
+                  [ projects, padButtons ]
               , message
             ]
         -- Debug
