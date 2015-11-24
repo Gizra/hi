@@ -70,6 +70,10 @@ initialModel =
       { name = "Negawatt project"
         , id = 1
         , selected = False
+      },
+      { name = "yaron project"
+        , id = 2
+        , selected = False
       }
     ]
   }
@@ -198,20 +202,20 @@ update action model =
 
     SetProject id ->
       let
-        toggleProjectSelection project = Nothing
-          -- if id == project.id
-          --   then project.selected = not ( project.selected )
-          --   else project
+        toggleProjectSelection project =
+
+          if id == project.id
+            then
+              { name = project.name
+              , id = project.id
+              , selected = not (project.selected)
+              }
+
+            else project
 
         updatedProjects =
-          -- List.map toggleProjectSelection model.projects
+          List.map toggleProjectSelection model.projects
 
-          [
-            { name = "Negawatt project"
-              , id = 1
-              , selected = True
-            }
-          ]
 
       in
         ( { model | projects <- updatedProjects }
@@ -423,13 +427,12 @@ view address model =
 
       in
         button
-            [
-              classList className
-              , onClick address (SetProject project.id)
-            ]
-            [ i [ class "fa fa-server icon" ] []
-              , text project.name
-            ]
+        [ classList className
+          , onClick address (SetProject project.id)
+        ]
+        [ i [ class "fa fa-server icon" ] []
+          , text project.name
+        ]
 
 
   in
