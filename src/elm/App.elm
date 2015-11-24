@@ -420,15 +420,27 @@ view address model =
     digits =
       let
         digitButton digit =
+
+          let
+          -- "Zero" button should be twice the size.
+            className = [
+              ("clear-btn digit", True)
+              , ("-double", digit == 0)
+            ]
+
+          in
           button
-              [ class "clear-btn digit"
+              [ classList className
                 , onClick address (AddDigit digit)
               ]
               [ text <| toString digit ]
+
       in
         div
           [ class "numbers-pad" ]
-          [ span [] ( List.map digitButton [0..9] |> List.reverse ) ]
+          [ span [] ( List.map digitButton [0..9] |> List.reverse )
+            , button [ class "clear-btn -delete" ] [ i [ class "fa fa-long-arrow-left" ] [] ]
+          ]
 
 
   in
@@ -439,14 +451,14 @@ view address model =
             [ pincode
               , date
               , ledLight
-              , div [ class "col-xs-5 text-center" ] [ projects , digits ]
+              , div [ class "col-xs-5 text-center" ] [ projects, digits ]
               , message
             ]
         -- Debug
         , div
             [ class "model-debug" ]
             [ text <| toString model
-            , (viewMessage model.message)
+              , (viewMessage model.message)
             ]
         ]
 
