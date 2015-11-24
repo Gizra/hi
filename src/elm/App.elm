@@ -125,7 +125,12 @@ update action model =
 
     DeleteDigit ->
       let
-        pincode' = toString (length model.pincode)
+        pincode' =
+          let
+            pincodeLength = length model.pincode
+
+          in
+            String.slice 0 (pincodeLength - 1) model.pincode
 
       in
         ( { model
