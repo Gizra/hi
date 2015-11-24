@@ -6,7 +6,7 @@ import Date exposing (..)
 import Date.Format as DF exposing (format)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, id, hidden)
+import Html.Attributes exposing (class, classList, id)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json exposing ((:=))
@@ -117,7 +117,6 @@ update action model =
       in
         ( { model
           | pincode <- pincode'
-          , message <- Empty
           , status <- Init
           }
         , effects'
@@ -336,13 +335,6 @@ view address model =
              | otherwise -> "-active"
 
 
-        -- Adding a "hidden" attribute to toggle the message (hide/show).
-        hidden' =
-          if | model.status == Init -> True
-             | model.status == Fetching -> True
-             | otherwise -> False
-
-
         msgClass =
           case model.status of
             Fetched Enter ->
@@ -361,6 +353,9 @@ view address model =
           case model.status of
             HttpError error ->
               i [ class "fa icon fa-exclamation-triangle" ] []
+
+            Init ->
+              i [] []
 
             _ ->
               i [ class "fa icon fa-check" ] []
@@ -395,7 +390,7 @@ view address model =
             [ div
                 [ class <| "main " ++ visibilityClass ]
                 [ div
-                    [ class "wrapper", hidden hidden' ]
+                    [ class "wrapper" ]
                     [ div
                         [ class <| "message " ++ msgClass ]
                         [ span [] [ msgIcon , text msgText ] ]
