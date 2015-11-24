@@ -383,6 +383,14 @@ view address model =
                 ]
             ]
 
+    projectsButtons : Project -> Html
+    projectsButtons project =
+      button
+          [ class"clear-btn -with-icon project"]
+          [ i [ class "fa fa-server icon" ] []
+            , text project.name
+          ]
+
 
   in
     div
@@ -394,11 +402,8 @@ view address model =
               , ledLight
               , div
                   [ class "col-xs-5 text-center" ]
-                  [ button
-                      [ class"clear-btn -with-icon project"]
-                      [ i [ class "fa fa-server icon" ] []
-                        , text "Negawatt project"
-                      ]
+                  [ span [] ( List.map projectsButtons model.projects )
+                    , div [ class "numbers-pad" ] []
                   ]
               , responseMessage
             ]
