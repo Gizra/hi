@@ -241,10 +241,6 @@ getErrorMessageFromHttpResponse error =
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
-    digitButton digit =
-      button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
-
-
     ledLight =
       let
         className =
@@ -417,7 +413,7 @@ view address model =
           , text  <| " " ++ project.name
         ]
 
-
+-- clear-btn digit
   in
     div
         [ class "container" ]
@@ -434,6 +430,8 @@ view address model =
               , message
             ]
         , viewMainContent address model
+        , (viewMessage model.message)
+        , div [ class "model-debug" ] [ text <| toString model ]
         ]
 
 
@@ -445,13 +443,8 @@ viewMainContent address model =
       button [ onClick address (AddDigit digit) ] [ text <| toString digit ]
   in
     div
-      [ class "keypad" ]
-      [ div
-          [ class "number-buttons" ]
-          ( List.map digitButton [0..9] |> List.reverse )
-      , (viewMessage model.message)
-      , div [ class "model-debug" ] [ text <| toString model ]
-      ]
+      [ class "numbers-pad" ]
+      [ span [] ( List.map digitButton [0..9] ) ]
 
 viewMessage : Message -> Html
 viewMessage message =
