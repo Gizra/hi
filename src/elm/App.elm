@@ -45,7 +45,6 @@ type alias Response =
 type alias Project =
   { name : String
     , id : Int
-    , selected : Bool
   }
 
 type alias Model =
@@ -56,6 +55,7 @@ type alias Model =
   , date : Maybe Time.Time
   , connected : Bool
   , projects : List Project
+  , selectedProject : Int
   }
 
 initialModel : Model
@@ -69,13 +69,9 @@ initialModel =
   , projects = [
       { name = "Negawatt project"
         , id = 1
-        , selected = False
-      },
-      { name = "yaron project"
-        , id = 2
-        , selected = False
       }
     ]
+  , selectedProject = 0
   }
 
 init : (Model, Effects Action)
@@ -200,25 +196,18 @@ update action model =
       )
 
 
-    SetProject id ->
+    SetProject projectId ->
       let
-        toggleProjectSelection project =
+        id =
+          -- Reset selected project in case we want to disable the selected one.
+          if projectId == model.selectedProject
+            then 0
 
-          if id == project.id
-            then
-              { name = project.name
-              , id = project.id
-              , selected = not (project.selected)
-              }
-
-            else project
-
-        updatedProjects =
-          List.map toggleProjectSelection model.projects
-
+          -- Set project as the selected one.
+          else projectId
 
       in
-        ( { model | projects <- updatedProjects }
+        ( { model | selectedProject <- id }
         , Effects.none
         )
 
@@ -422,7 +411,7 @@ view address model =
       let
         className = [
           ("-with-icon clear-btn project", True)
-          , ("-active", project.selected)
+          , ("-active", project.id == model.selectedProject)
         ]
 
       in
