@@ -420,7 +420,7 @@ view address model =
           , onClick address (SetProject project.id)
         ]
         [ i [ class "fa fa-server icon" ] []
-          , text project.name
+          , text  <| " " ++ project.name
         ]
 
 
