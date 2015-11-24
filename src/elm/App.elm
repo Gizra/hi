@@ -6,7 +6,7 @@ import Date exposing (..)
 import Date.Format as DF exposing (format)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, id)
+import Html.Attributes exposing (class, classList, id, disabled)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json exposing ((:=))
@@ -417,16 +417,16 @@ view address model =
     projects = span [] (List.map projectsButtons model.projects)
 
 
-    digits =
+    padButtons =
       let
         digitButton digit =
-
           let
           -- "Zero" button should be twice the size.
             className = [
               ("clear-btn digit", True)
               , ("-double", digit == 0)
             ]
+
 
           in
           button
@@ -435,11 +435,25 @@ view address model =
               ]
               [ text <| toString digit ]
 
+
+        deleteButton =
+          let
+            deleteDisable =
+              if length model.pincode == 0
+                then True
+                else False
+
+          in
+            button
+                [ class "clear-btn -delete", disabled deleteDisable ]
+                [ i [ class "fa fa-long-arrow-left" ] [] ]
+
+
       in
         div
           [ class "numbers-pad" ]
           [ span [] ( List.map digitButton [0..9] |> List.reverse )
-            , button [ class "clear-btn -delete" ] [ i [ class "fa fa-long-arrow-left" ] [] ]
+            , deleteButton
           ]
 
 
@@ -451,7 +465,7 @@ view address model =
             [ pincode
               , date
               , ledLight
-              , div [ class "col-xs-5 text-center" ] [ projects, digits ]
+              , div [ class "col-xs-5 text-center" ] [ projects, padButtons ]
               , message
             ]
         -- Debug
