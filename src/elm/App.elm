@@ -42,6 +42,11 @@ type alias Response =
   , end : Maybe Int
   }
 
+type alias Project =
+  { name : String
+    , id : Int
+  }
+
 type alias Model =
   { pincode : String
   , status : Status
@@ -49,6 +54,7 @@ type alias Model =
   , tickStatus : TickStatus
   , date : Maybe Time.Time
   , connected : Bool
+  , projects : List Project
   }
 
 initialModel : Model
@@ -59,6 +65,9 @@ initialModel =
   , tickStatus = Ready
   , date = Nothing
   , connected = False
+  , projects = [
+    { name = "Negawatt project", id = 1 }
+    ]
   }
 
 init : (Model, Effects Action)
@@ -383,7 +392,14 @@ view address model =
             [ pincode
               , date
               , ledLight
-              , div [ class "col-xs-5 text-center" ] []
+              , div
+                  [ class "col-xs-5 text-center" ]
+                  [ button
+                      [ class"clear-btn -with-icon project"]
+                      [ i [ class "fa fa-server icon" ] []
+                        , text "Negawatt project"
+                      ]
+                  ]
               , responseMessage
             ]
         , viewMainContent address model
