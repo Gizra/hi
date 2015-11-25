@@ -1,7 +1,7 @@
 "use strict";
 
 function isTouchDevice() {
-  return 'onmsgesturechange' in window;
+  return 'ontouchstart' in window || 'onmsgesturechange' in window;
 }
 
 var initialValues = {
@@ -10,4 +10,4 @@ var initialValues = {
 
 var elmApp = Elm.fullscreen(Elm.Main, initialValues);
 
-elmApp.ports.isTouchDevice.send(isTouchDevice());
+elmApp.ports.isTouchDevice.send(initialValues.isTouchDevice);

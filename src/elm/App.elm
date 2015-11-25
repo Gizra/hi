@@ -161,9 +161,6 @@ update action model =
         )
 
     SetTouchDevice val ->
-      let
-        _ = Debug.log "SetTouchDevice" val
-      in
       ( { model | isTouchDevice <- val }
       , Effects.none
       )
