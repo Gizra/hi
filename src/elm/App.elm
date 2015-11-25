@@ -258,10 +258,6 @@ view address model =
           [ span [ class <| "light " ++ className ] []]
 
 
-    simpleDiv class' =
-      div [ class  class' ] []
-
-
     pincodeText delta =
       let
         text' =
@@ -289,7 +285,7 @@ view address model =
           [ class "col-xs-5 main-header pin-code text-center" ]
           [ div
               [ class "code clearfix" ]
-              [ simpleDiv "item icon fa fa-lock"
+              [ div [ class "item icon fa fa-lock" ] []
                 , span [] ( List.map pincodeText [0..3] )
                 , div [ class "item icon -dynamic-icon" ] [ icon ]
               ]
@@ -399,15 +395,16 @@ view address model =
                 ]
             ]
 
+
     projectsButtons : Project -> Html
     projectsButtons project =
-
       let
         className =
           [
           ("-with-icon clear-btn project", True)
           , ("-active", project.id == model.selectedProject)
           ]
+
 
       in
         button
