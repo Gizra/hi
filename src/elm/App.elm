@@ -411,12 +411,12 @@ view address model =
 
       in
         button
-        [ classList className
-          , onClick address (SetProject project.id)
-        ]
-        [ i [ class "fa fa-server icon" ] []
-        , text  <| " " ++ project.name
-        ]
+            [ classList className
+            , onClick address (SetProject project.id)
+            ]
+            [ i [ class "fa fa-server icon" ] []
+            , text  <| " " ++ project.name
+            ]
 
 
   in
