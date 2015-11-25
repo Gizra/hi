@@ -44,7 +44,7 @@ type alias Response =
 
 type alias Project =
   { name : String
-    , id : Int
+  , id : Int
   }
 
 type alias Model =
@@ -67,8 +67,8 @@ initialModel =
   , date = Nothing
   , connected = False
   , projects = [
-      { name = "Negawatt project"
-        , id = 33
+      { name = .name Config.project
+      , id = .id Config.project
       }
     ]
   , selectedProject = 0
@@ -201,9 +201,8 @@ update action model =
           -- Reset selected project in case we want to disable the selected one.
           if projectId == model.selectedProject
             then 0
-
-          -- Set project as the selected one.
-          else projectId
+            -- Set project as the selected one.
+            else projectId
 
       in
         ( { model | selectedProject <- id }
@@ -400,8 +399,7 @@ view address model =
     projectsButtons project =
       let
         className =
-          [
-          ("-with-icon clear-btn project", True)
+          [ ("-with-icon clear-btn project", True)
           , ("-active", project.id == model.selectedProject)
           ]
 
