@@ -403,10 +403,11 @@ view address model =
     projectsButtons project =
 
       let
-        className = [
+        className =
+          [
           ("-with-icon clear-btn project", True)
           , ("-active", project.id == model.selectedProject)
-        ]
+          ]
 
       in
         button
@@ -414,7 +415,7 @@ view address model =
           , onClick address (SetProject project.id)
         ]
         [ i [ class "fa fa-server icon" ] []
-          , text  <| " " ++ project.name
+        , text  <| " " ++ project.name
         ]
 
 
