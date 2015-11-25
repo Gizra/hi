@@ -44,7 +44,7 @@ type alias Response =
 
 type alias Project =
   { name : String
-    , id : Int
+  , id : Int
   }
 
 type alias Model =
@@ -67,8 +67,8 @@ initialModel =
   , date = Nothing
   , connected = False
   , projects = [
-      { name = "Negawatt project"
-        , id = 33
+      { name = .name Config.project
+      , id = .id Config.project
       }
     ]
   , selectedProject = 0
@@ -216,12 +216,11 @@ update action model =
     SetProject projectId ->
       let
         id =
-          -- Reset selected project in case we want to disable the selected one.
           if projectId == model.selectedProject
+            -- In case we want to disable the current selected project.
             then 0
-
-          -- Set project as the selected one.
-          else projectId
+            -- In case we want to select a project.
+            else projectId
 
       in
         ( { model | selectedProject <- id }
@@ -272,10 +271,6 @@ view address model =
           [ span [ class <| "light " ++ className ] []]
 
 
-    simpleDiv class' =
-      div [ class  class' ] []
-
-
     pincodeText delta =
       let
         text' =
@@ -303,9 +298,9 @@ view address model =
           [ class "col-xs-5 main-header pin-code text-center" ]
           [ div
               [ class "code clearfix" ]
-              [ simpleDiv "item icon fa fa-lock"
-                , span [] ( List.map pincodeText [0..3] )
-                , div [ class "item icon -dynamic-icon" ] [ icon ]
+              [ div [ class "item icon fa fa-lock" ] []
+              , span [] (List.map pincodeText [0..3])
+              , div [ class "item icon -dynamic-icon" ] [ icon ]
               ]
           ]
 
@@ -413,22 +408,24 @@ view address model =
                 ]
             ]
 
+
     projectsButtons : Project -> Html
     projectsButtons project =
       let
-        className = [
-          ("-with-icon clear-btn project", True)
+        className =
+          [ ("-with-icon clear-btn project", True)
           , ("-active", project.id == model.selectedProject)
-        ]
+          ]
+
 
       in
         button
-        [ classList className
-          , onClick address (SetProject project.id)
-        ]
-        [ i [ class "fa fa-server icon" ] []
-          , text  <| " " ++ project.name
-        ]
+            [ classList className
+            , onClick address (SetProject project.id)
+            ]
+            [ i [ class "fa fa-server icon" ] []
+            , text  <| " " ++ project.name
+            ]
 
 
     projects = span [] (List.map projectsButtons model.projects)
@@ -480,7 +477,6 @@ view address model =
           , deleteButton
           ]
 
-
   in
     div
         [ class "container" ]
@@ -523,7 +519,7 @@ getJson url accessToken pincode projectId =
     { verb = "POST"
     , headers = [ ("access-token", accessToken) ]
     , url = url
-    , body = ( Http.string <| dataToJson pincode projectId )
+    , body = (Http.string <| dataToJson pincode projectId)
     }
     |> Http.fromJson decodeResponse
     |> Task.toResult
