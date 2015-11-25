@@ -285,7 +285,7 @@ view address model =
           [ div
               [ class "code clearfix" ]
               [ div [ class "item icon fa fa-lock" ] []
-              , span [] ( List.map pincodeText [0..3] )
+              , span [] (List.map pincodeText [0..3])
               , div [ class "item icon -dynamic-icon" ] [ icon ]
               ]
           ]
@@ -469,7 +469,7 @@ getJson url accessToken pincode projectId =
     { verb = "POST"
     , headers = [ ("access-token", accessToken) ]
     , url = url
-    , body = ( Http.string <| dataToJson pincode projectId )
+    , body = (Http.string <| dataToJson pincode projectId)
     }
     |> Http.fromJson decodeResponse
     |> Task.toResult
