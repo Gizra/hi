@@ -87,7 +87,6 @@ pincodeLength = 4
 
 type Action
   = AddDigit Int
-  | Reset
   | SetDate Time.Time
   | SetMessage Message
   | SubmitCode
@@ -116,8 +115,8 @@ update action model =
 
       in
         ( { model
-          | pincode <- pincode'
-          , status <- Init
+          | pincode = pincode'
+          , status = Init
           }
         , effects'
         )
@@ -127,14 +126,14 @@ update action model =
         url = Config.backendUrl ++ "/api/v1.0/timewatch-punch"
         projectId = toString model.selectedProject
       in
-        ( { model | status <- Fetching }
+        ( { model | status = Fetching }
         , getJson url Config.accessToken model.pincode projectId
         )
 
     SetDate time ->
         ( { model
-          | tickStatus <- Ready
-          , date <- Just time
+          | tickStatus = Ready
+          , date = Just time
           }
         , Effects.none
         )
@@ -146,7 +145,7 @@ update action model =
             then Effects.batch [ getDate, tick ]
             else Effects.none
       in
-        ( { model | tickStatus <- Waiting }
+        ( { model | tickStatus = Waiting }
         , effects
         )
 
@@ -172,8 +171,8 @@ update action model =
 
           in
             ( { model
-              | status <- Fetched operation
-              , pincode <- ""
+              | status = Fetched operation
+              , pincode = ""
               }
             , Task.succeed (SetMessage (Success message)) |> Effects.task
             )
@@ -183,14 +182,14 @@ update action model =
               getErrorMessageFromHttpResponse error
           in
             ( { model
-              | status <- HttpError error
-              , pincode <- ""
+              | status = HttpError error
+              , pincode = ""
               }
             , Task.succeed (SetMessage <| Error message) |> Effects.task
             )
 
     SetMessage message ->
-      ( { model | message <- message }
+      ( { model | message = message }
       , Effects.none
       )
 
@@ -205,7 +204,7 @@ update action model =
             else projectId
 
       in
-        ( { model | selectedProject <- id }
+        ( { model | selectedProject = id }
         , Effects.none
         )
 
@@ -219,20 +218,26 @@ getErrorMessageFromHttpResponse error =
 
     Http.BadResponse code message ->
       -- TODO: Print the error's title
-      if | code == 400 -> "Wrong pincode"
-         | code == 401 -> "Invalid access token"
-         | code == 429 -> "Too many login requests with the wrong username or password. Wait a few hours before trying again"
-         | code >= 500 -> "Some error has occurred on the server"
-         | otherwise -> "Unknown error has occurred"
+      if code == 400 then
+        "Wrong pincode"
+
+      else if code == 401 then
+        "Invalid access token"
+
+      else if code == 429 then
+        "Too many login requests with the wrong username or password. Wait a few hours before trying again"
+
+      else if code >= 500 then
+        "Some error has occurred on the server"
+
+      else
+        "Unknown error has occurred"
 
     Http.NetworkError ->
       "A network error has occured"
 
     Http.UnexpectedPayload message ->
       "Unexpected response: " ++ message
-
-    _ ->
-      "Unexpected error: " ++ toString error
 
 
 -- VIEW
@@ -325,9 +330,14 @@ view address model =
       let
         -- Adding a "class" to toggle the view display (hide/show).
         visibilityClass =
-          if | model.status == Init -> ""
-             | model.status == Fetching -> ""
-             | otherwise -> "-active"
+          if model.status == Init then
+            ""
+
+          else if model.status == Fetching then
+            ""
+
+          else
+            "-active"
 
 
         msgClass =
