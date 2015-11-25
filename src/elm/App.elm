@@ -445,11 +445,17 @@ view address model =
               , ("-double", digit == 0)
               ]
 
+            disable =
+              if model.status == Fetching
+                then True
+                else False
+
 
           in
           button
               [ classList className
               , onClick address (AddDigit digit)
+              , disabled disable
               ]
               [ text <| toString digit ]
 
@@ -457,7 +463,7 @@ view address model =
         deleteButton =
           let
             deleteDisable =
-              if length model.pincode == 0
+              if ( length model.pincode == 0 || model.status == Fetching )
                 then True
                 else False
 
