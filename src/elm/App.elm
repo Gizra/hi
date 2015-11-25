@@ -434,49 +434,46 @@ view address model =
     projects = span [] (List.map projectsButtons model.projects)
 
 
-    padButtons =
+    digitButton digit =
       let
-        digitButton digit =
-          let
-          -- "Zero" button should be twice the size.
-            className =
-              [
-              ("clear-btn digit", True)
-              , ("-double", digit == 0)
-              ]
+      -- "Zero" button should be twice the size.
+        className =
+          [ ("clear-btn digit", True)
+          , ("-double", digit == 0)
+          ]
 
-            disable =
-              if model.status == Fetching
-                then True
-                else False
-
-
-          in
-          button
-              [ classList className
-              , onClick address (AddDigit digit)
-              , disabled disable
-              ]
-              [ text <| toString digit ]
-
-
-        deleteButton =
-          let
-            deleteDisable =
-              if ( length model.pincode == 0 || model.status == Fetching )
-                then True
-                else False
-
-          in
-            button
-                [ class "clear-btn -delete"
-                , onClick address DeleteDigit
-                , disabled deleteDisable
-                ]
-                [ i [ class "fa fa-long-arrow-left" ] [] ]
+        disable =
+          if model.status == Fetching
+            then True
+            else False
 
 
       in
+      button
+          [ classList className
+          , onClick address (AddDigit digit)
+          , disabled disable
+          ]
+          [ text <| toString digit ]
+
+
+    deleteButton =
+      let
+        deleteDisable =
+          if ( length model.pincode == 0 || model.status == Fetching )
+            then True
+            else False
+
+      in
+        button
+            [ class "clear-btn -delete"
+            , onClick address DeleteDigit
+            , disabled deleteDisable
+            ]
+            [ i [ class "fa fa-long-arrow-left" ] [] ]
+
+
+    padButtons =
         div
           [ class "numbers-pad" ]
           [ span [] ( List.map digitButton [0..9] |> List.reverse )
