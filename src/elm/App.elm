@@ -125,12 +125,13 @@ update action model =
 
     DeleteDigit ->
       let
-        pincode' =
-          let
-            pincodeLength = length model.pincode
+        pincodeLength =
+          length model.pincode
 
-          in
-            String.slice 0 (pincodeLength - 1) model.pincode
+        pincode' =
+          if pincodeLength > 0
+            then String.slice 0 (pincodeLength - 1) model.pincode
+            else ""
 
       in
         ( { model
