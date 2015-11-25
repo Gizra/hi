@@ -429,7 +429,7 @@ view address model =
               , div
                   [ class "col-xs-5 text-center" ]
                   [ span [] (List.map projectsButtons model.projects)
-                    , div [ class "numbers-pad" ] []
+                  , div [ class "numbers-pad" ] []
                   ]
               , message
             ]
