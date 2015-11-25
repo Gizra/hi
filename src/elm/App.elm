@@ -7,9 +7,9 @@ import Date.Format as DF exposing (format)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList, id, disabled)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, on)
 import Http
-import Json.Decode as Json exposing ((:=))
+import Json.Decode as Json exposing ((:=), value)
 import Json.Encode as JE
 import String exposing (length)
 import Task
@@ -56,6 +56,7 @@ type alias Model =
   , connected : Bool
   , projects : List Project
   , selectedProject : Int
+  , isTouchDevice : Bool
   }
 
 initialModel : Model
@@ -72,6 +73,7 @@ initialModel =
       }
     ]
   , selectedProject = 0
+  , isTouchDevice = False
   }
 
 init : (Model, Effects Action)
@@ -95,6 +97,7 @@ type Action
   | Tick
   | UpdateDataFromServer (Result Http.Error Response)
   | SetProject Int
+  | SetTouchDevice Bool
 
 
 update : Action -> Model -> (Model, Effects Action)
@@ -156,6 +159,14 @@ update action model =
           }
         , Effects.none
         )
+
+    SetTouchDevice val ->
+      let
+        _ = Debug.log "SetTouchDevice" val
+      in
+      ( { model | isTouchDevice <- val }
+      , Effects.none
+      )
 
     Tick ->
       let
@@ -421,7 +432,8 @@ view address model =
       in
         button
             [ classList className
-            , onClick address (SetProject project.id)
+            -- , onClick address (SetProject project.id)
+            , on "touchstart" Json.value (\id -> Signal.message address (SetProject project.id) )
             ]
             [ i [ class "fa fa-server icon" ] []
             , text  <| " " ++ project.name
