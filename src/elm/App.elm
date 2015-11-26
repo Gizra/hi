@@ -147,7 +147,7 @@ update action model =
         ( { model
           | pincode <- pincode'
           }
-        , Effects.none
+        , Task.succeed (SetActiveButton -1) |> Effects.task
         )
 
     SubmitCode ->
@@ -274,6 +274,11 @@ getErrorMessageFromHttpResponse error =
     _ ->
       "Unexpected error: " ++ toString error
 
+isButtonPressed : Int -> Model -> Bool
+isButtonPressed id model =
+  case model.activeButton of
+    Just val -> id == val
+    Nothing -> False
 
 -- VIEW
 
@@ -368,7 +373,6 @@ view address model =
              | model.status == Fetching -> ""
              | otherwise -> "-active"
 
-
         msgClass =
           case model.status of
             Fetched Enter ->
@@ -420,18 +424,18 @@ view address model =
 
       in
         div
-            [ class "col-xs-7 view" ]
+          [ class "col-xs-7 view" ]
+          [ div
+            [ class <| "main " ++ visibilityClass ]
             [ div
-                [ class <| "main " ++ visibilityClass ]
-                [ div
-                    [ class "wrapper" ]
-                    [ div
-                        [ class <| "message " ++ msgClass ]
-                        [ span [] [ msgIcon , text msgText ] ]
-                    ]
-                , div [ class "text-center" ] [ actionIcon ]
-                ]
+              [ class "wrapper" ]
+              [ div
+                [ class <| "message " ++ msgClass ]
+                [ span [] [ msgIcon , text msgText ] ]
+              ]
+            , div [ class "text-center" ] [ actionIcon ]
             ]
+          ]
 
 
     projectsButtons : Project -> Html
@@ -451,22 +455,14 @@ view address model =
           , text  <| " " ++ project.name
           ]
 
-
     projects = span [] (List.map projectsButtons model.projects)
-
 
     digitButton digit =
       let
-        isActive id =
-          case model.activeButton of
-            Just val -> id == val
-            Nothing -> False
-
-      -- "Zero" button should be twice the size.
         className =
           [ ("clear-btn digit", True)
           , ("-double", digit == 0)
-          , ("-active", isActive digit)
+          , ("-active", isButtonPressed digit model)
           ]
 
         disable =
@@ -487,15 +483,9 @@ view address model =
 
     deleteButton =
       let
-        activeItem id =
-          case model.activeButton of
-            Just val ->
-              if id == val then ("-active", True) else ("", False)
-            Nothing -> ("", False)
-
         className =
           [ ("clear-btn -delete", True)
-          -- , activeItem digit
+          , ("-active", isButtonPressed -1 model)
           ]
 
         deleteDisable =
