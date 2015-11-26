@@ -1,10 +1,10 @@
 module Config where
 
 backendUrl : String
-backendUrl = "http://localhost/productivity/www"
+backendUrl = "http://192.168.1.27/productivity/www"
 
 accessToken : String
-accessToken = "diXWcNuGDI9n1hAthUl9h9cfREbIndB1JhzZ-bfb3Z4"
+accessToken = "ASSzxNeOcQ_0XZS36IU5WPZBXZdeja-o96dci8jbbnA"
 
 project =
   { name = "Negawatt project"

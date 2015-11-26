@@ -57,6 +57,7 @@ type alias Model =
   , projects : List Project
   , selectedProject : Int
   , isTouchDevice : Bool
+  , activeButton : Int
   }
 
 initialModel : Model
@@ -74,6 +75,7 @@ initialModel =
     ]
   , selectedProject = 0
   , isTouchDevice = False
+  , activeButton = -3
   }
 
 init : (Model, Effects Action)
@@ -98,6 +100,8 @@ type Action
   | UpdateDataFromServer (Result Http.Error Response)
   | SetProject Int
   | SetTouchDevice Bool
+  | UnsetActiveButton Int
+  | SetActiveButton Int
 
 
 update : Action -> Model -> (Model, Effects Action)
@@ -122,6 +126,7 @@ update action model =
         ( { model
           | pincode <- pincode'
           , status <- Init
+          , activeButton <- digit
           }
         , effects'
         )
@@ -139,6 +144,7 @@ update action model =
       in
         ( { model
           | pincode <- pincode'
+          , activeButton <- -1
           }
         , Effects.none
         )
@@ -220,7 +226,6 @@ update action model =
       , Effects.none
       )
 
-
     SetProject projectId ->
       let
         id =
@@ -235,6 +240,10 @@ update action model =
         , Effects.none
         )
 
+    UnsetActiveButton id ->
+      ( { model | activeButton <- -3 }
+      , Effects.none
+      )
 
 
 getErrorMessageFromHttpResponse : Http.Error -> String
@@ -335,12 +344,14 @@ view address model =
 
     date =
       div
-          [ class "col-xs-5 main-header info text-center" ]
-          [ span [][ text dateString ]
-          , span
-                [ class "time" ]
-                [ clockIcon , span [] [ text timeString ] ]
+        [ class "col-xs-5 main-header info text-center" ]
+        [ span [][ text dateString ]
+        , span
+          [ class "time" ]
+          [ clockIcon
+          , span [] [ text timeString ]
           ]
+      ]
 
 
     message =
@@ -425,16 +436,14 @@ view address model =
           , ("-active", project.id == model.selectedProject)
           ]
 
-
       in
         button
-            [ classList className
-            -- , onClick address (SetProject project.id)
-            , on "touchstart" Json.value (\id -> Signal.message address (SetProject project.id) )
-            ]
-            [ i [ class "fa fa-server icon" ] []
-            , text  <| " " ++ project.name
-            ]
+          [ classList className
+          , on "touchstart" Json.value (\_ -> Signal.message address (SetProject project.id))
+          ]
+          [ i [ class "fa fa-server icon" ] []
+          , text  <| " " ++ project.name
+          ]
 
 
     projects = span [] (List.map projectsButtons model.projects)
@@ -446,6 +455,7 @@ view address model =
         className =
           [ ("clear-btn digit", True)
           , ("-double", digit == 0)
+          , ("-active", digit == model.activeButton)
           ]
 
         disable =
@@ -457,7 +467,8 @@ view address model =
       in
       button
           [ classList className
-          , onClick address (AddDigit digit)
+          , on "touchstart" Json.value (\_ -> Signal.message address (AddDigit digit))
+          , on "touchend" Json.value (\_ -> Signal.message address (UnsetActiveButton digit))
           , disabled disable
           ]
           [ text <| toString digit ]
@@ -465,6 +476,11 @@ view address model =
 
     deleteButton =
       let
+        className =
+          [ ("clear-btn -delete", True)
+          , ("-active", -1 == model.activeButton)
+          ]
+
         deleteDisable =
           if ( length model.pincode == 0 || model.status == Fetching )
             then True
@@ -472,8 +488,9 @@ view address model =
 
       in
         button
-            [ class "clear-btn -delete"
-            , onClick address DeleteDigit
+            [ classList className
+            , on "touchstart" Json.value (\_ -> Signal.message address DeleteDigit)
+            , on "touchend" Json.value (\_ -> Signal.message address (UnsetActiveButton -1))
             , disabled deleteDisable
             ]
             [ i [ class "fa fa-long-arrow-left" ] [] ]
