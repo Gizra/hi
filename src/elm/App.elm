@@ -457,17 +457,16 @@ view address model =
 
     digitButton digit =
       let
-        activeItem id =
+        isActive id =
           case model.activeButton of
-            Just val ->
-              if id == val then ("-active", True) else ("", False)
-            Nothing -> ("", False)
+            Just val -> id == val
+            Nothing -> False
 
       -- "Zero" button should be twice the size.
         className =
           [ ("clear-btn digit", True)
           , ("-double", digit == 0)
-          , activeItem digit
+          , ("-active", isActive digit)
           ]
 
         disable =
