@@ -57,7 +57,7 @@ type alias Model =
   , projects : List Project
   , selectedProject : Int
   , isTouchDevice : Bool
-  , activeButton : Int
+  , activeButton : Maybe Int
   }
 
 initialModel : Model
@@ -75,7 +75,7 @@ initialModel =
     ]
   , selectedProject = 0
   , isTouchDevice = False
-  , activeButton = -3
+  , activeButton = Nothing
   }
 
 init : (Model, Effects Action)
@@ -100,7 +100,7 @@ type Action
   | UpdateDataFromServer (Result Http.Error Response)
   | SetProject Int
   | SetTouchDevice Bool
-  | UnsetActiveButton Int
+  | UnsetActiveButton
   | SetActiveButton Int
 
 
@@ -114,21 +114,23 @@ update action model =
             then model.pincode ++ toString(digit)
             else model.pincode
 
+        defaultEffect =
+          [ Task.succeed (SetActiveButton digit) |> Effects.task ]
+
         effects' =
           -- Calling submit code when pincode length is one less than the needed
           -- length, since at this point the model isn't updated yet with the
           -- current digit.
           if length model.pincode == pincodeLength - 1
-            then Task.succeed SubmitCode |> Effects.task
-            else Effects.none
+            then (Task.succeed SubmitCode |> Effects.task) :: defaultEffect
+            else defaultEffect
 
       in
         ( { model
           | pincode <- pincode'
           , status <- Init
-          , activeButton <- digit
           }
-        , effects'
+        , Effects.batch effects'
         )
 
     DeleteDigit ->
@@ -144,7 +146,6 @@ update action model =
       in
         ( { model
           | pincode <- pincode'
-          , activeButton <- -1
           }
         , Effects.none
         )
@@ -240,11 +241,15 @@ update action model =
         , Effects.none
         )
 
-    UnsetActiveButton id ->
-      ( { model | activeButton <- -3 }
+    UnsetActiveButton ->
+      ( { model | activeButton <- Nothing }
       , Effects.none
       )
 
+    SetActiveButton val ->
+      ( { model | activeButton <- Just val }
+      , Effects.none
+      )
 
 getErrorMessageFromHttpResponse : Http.Error -> String
 getErrorMessageFromHttpResponse error =
@@ -275,6 +280,7 @@ getErrorMessageFromHttpResponse error =
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
+
     ledLight =
       let
         className =
@@ -451,11 +457,17 @@ view address model =
 
     digitButton digit =
       let
+        activeItem id =
+          case model.activeButton of
+            Just val ->
+              if id == val then ("-active", True) else ("", False)
+            Nothing -> ("", False)
+
       -- "Zero" button should be twice the size.
         className =
           [ ("clear-btn digit", True)
           , ("-double", digit == 0)
-          , ("-active", digit == model.activeButton)
+          , activeItem digit
           ]
 
         disable =
@@ -465,10 +477,10 @@ view address model =
 
 
       in
-      button
+        button
           [ classList className
           , on "touchstart" Json.value (\_ -> Signal.message address (AddDigit digit))
-          , on "touchend" Json.value (\_ -> Signal.message address (UnsetActiveButton digit))
+          , on "touchend" Json.value (\_ -> Signal.message address UnsetActiveButton)
           , disabled disable
           ]
           [ text <| toString digit ]
@@ -476,9 +488,15 @@ view address model =
 
     deleteButton =
       let
+        activeItem id =
+          case model.activeButton of
+            Just val ->
+              if id == val then ("-active", True) else ("", False)
+            Nothing -> ("", False)
+
         className =
           [ ("clear-btn -delete", True)
-          , ("-active", -1 == model.activeButton)
+          -- , activeItem digit
           ]
 
         deleteDisable =
@@ -490,7 +508,7 @@ view address model =
         button
             [ classList className
             , on "touchstart" Json.value (\_ -> Signal.message address DeleteDigit)
-            , on "touchend" Json.value (\_ -> Signal.message address (UnsetActiveButton -1))
+            , on "touchend" Json.value (\_ -> Signal.message address UnsetActiveButton)
             , disabled deleteDisable
             ]
             [ i [ class "fa fa-long-arrow-left" ] [] ]
