@@ -193,7 +193,10 @@ update action model =
     SubmitCode ->
       let
         url = Config.backendUrl ++ "/api/v1.0/timewatch-punch"
-        projectId = toString model.selectedProject
+        projectId =
+          case model.selectedProject of
+            Just val -> toString val
+            Nothing -> ""
       in
         ( { model | status <- Fetching }
         , getJson url Config.accessToken model.pincode projectId
