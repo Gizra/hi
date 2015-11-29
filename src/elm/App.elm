@@ -102,7 +102,7 @@ type Action
   | SetTouchDevice Bool
   | UnsetPressedButton
   | SetPressedButton Int
-  | NoAction
+  | NoOp
 
 
 update : Action -> Model -> (Model, Effects Action)
@@ -252,7 +252,7 @@ update action model =
       , Effects.none
       )
 
-    NoAction ->
+    NoOp ->
       ( model
       , Effects.none
       )
@@ -331,14 +331,14 @@ view address model =
 
     pincode =
       div
-          [ class "col-xs-5 main-header pin-code text-center" ]
-          [ div
-              [ class "code clearfix" ]
-              [ div [ class "item icon fa fa-lock" ] []
-              , span [] (List.map pincodeText [0..3])
-              , div [ class "item icon -dynamic-icon" ] [ icon ]
-              ]
-          ]
+        [ class "col-xs-5 main-header pin-code text-center" ]
+        [ div
+            [ class "code clearfix" ]
+            [ div [ class "item icon fa fa-lock" ] []
+            , span [] (List.map pincodeText [0..3])
+            , div [ class "item icon -dynamic-icon" ] [ icon ]
+            ]
+        ]
 
 
     clockIcon =
@@ -366,10 +366,10 @@ view address model =
         [ class "col-xs-5 main-header info text-center" ]
         [ span [][ text dateString ]
         , span
-          [ class "time" ]
-          [ clockIcon
-          , span [] [ text timeString ]
-          ]
+            [ class "time" ]
+            [ clockIcon
+            , span [] [ text timeString ]
+            ]
       ]
 
 
@@ -434,15 +434,15 @@ view address model =
         div
           [ class "col-xs-7 view" ]
           [ div
-            [ class <| "main " ++ visibilityClass ]
-            [ div
-              [ class "wrapper" ]
+              [ class <| "main " ++ visibilityClass ]
               [ div
-                [ class <| "message " ++ msgClass ]
-                [ span [] [ msgIcon , text msgText ] ]
+                  [ class "wrapper" ]
+                  [ div
+                      [ class <| "message " ++ msgClass ]
+                      [ span [] [ msgIcon , text msgText ] ]
+                  ]
+              , div [ class "text-center" ] [ actionIcon ]
               ]
-            , div [ class "text-center" ] [ actionIcon ]
-            ]
           ]
 
 
@@ -480,7 +480,7 @@ view address model =
 
         action digit =
           if disable
-            then NoAction
+            then NoOp
             else AddDigit digit
 
       in
@@ -507,7 +507,7 @@ view address model =
 
         action =
           if disable
-            then NoAction
+            then NoOp
             else DeleteDigit
 
       in
@@ -531,21 +531,21 @@ view address model =
     div
       [ class "container" ]
       [ div
-        [ class "row dashboard" ]
-        [ pincode
-        , date
-        , ledLight
-        , div
-          [ class "col-xs-5 text-center" ]
-          [ projects, padButtons ]
-        , message
-        ]
+          [ class "row dashboard" ]
+          [ pincode
+          , date
+          , ledLight
+          , div
+              [ class "col-xs-5 text-center" ]
+              [ projects, padButtons ]
+          , message
+          ]
       -- Debug
       , div
-        [ class "model-debug" ]
-        [ text <| toString model
-        , (viewMessage model.message)
-        ]
+          [ class "model-debug" ]
+          [ text <| toString model
+          , (viewMessage model.message)
+          ]
       ]
 
 
