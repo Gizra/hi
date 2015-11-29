@@ -6,7 +6,7 @@ import Date exposing (..)
 import Date.Format as DF exposing (format)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, id, disabled)
+import Html.Attributes exposing (class, classList, id, disabled, hidden)
 import Html.Events exposing (onClick, on)
 import Http
 import Json.Decode as Json exposing ((:=), value)
@@ -547,7 +547,7 @@ view address model =
           ]
       -- Debug
       , div
-          [ class "model-debug" ]
+          [ class "model-debug", hidden (not Config.debugMode) ]
           [ text <| toString model
           , (viewMessage model.message)
           ]
