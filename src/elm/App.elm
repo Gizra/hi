@@ -289,6 +289,12 @@ isButtonPressed id pressedButoon =
     Nothing -> False
 
 
+clickEvent: Bool -> String
+clickEvent isTouchDevice =
+  if isTouchDevice
+    then "touchstart"
+    else "mousedown"
+
 -- VIEW
 view : Signal.Address Action -> Model -> Html
 view address model =
@@ -454,10 +460,12 @@ view address model =
           , ("-active", isButtonPressed project.id model.selectedProject)
           ]
 
+        event = clickEvent model.isTouchDevice
+
       in
         button
           [ classList className
-          , on "touchstart" Json.value (\_ -> Signal.message address (SetProject project.id))
+          , on event Json.value (\_ -> Signal.message address (SetProject project.id))
           ]
           [ i [ class "fa fa-server icon" ] []
           , text  <| " " ++ project.name
