@@ -301,16 +301,9 @@ view address model =
   let
 
     ledLight =
-      let
-        className =
-          case model.connected of
-            False -> "-off"
-            True -> "-on"
-
-      in
-        div
-          [ class "col-xs-2 main-header led text-center" ]
-          [ span [ class <| "light -on" ] []]
+      div
+        [ class "col-xs-2 main-header led text-center" ]
+        [ span [ class "light -on" ] []]
 
 
     pincodeText delta =
