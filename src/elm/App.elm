@@ -273,7 +273,8 @@ getErrorMessageFromHttpResponse error =
          | otherwise -> "Unknown error has occurred"
 
     Http.NetworkError ->
-      "A network error has occured"
+      -- "A network error has occured"
+      toString error
 
     Http.UnexpectedPayload message ->
       "Unexpected response: " ++ message
@@ -289,11 +290,11 @@ isButtonPressed id pressedButoon =
     Nothing -> False
 
 
-clickEvent: Bool -> { start : String, end : String }
+clickEvent: Bool -> (String, String)
 clickEvent isTouchDevice =
   if isTouchDevice
-    then { start = "touchstart", end = "touchend" }
-    else { start = "mousedown", end = "mouseup" }
+    then ("touchstart", "touchend")
+    else ("mousedown", "mouseup")
 
 -- VIEW
 view : Signal.Address Action -> Model -> Html
@@ -453,12 +454,13 @@ view address model =
           , ("-active", isButtonPressed project.id model.selectedProject)
           ]
 
-        event = clickEvent model.isTouchDevice
+        (clickStartEvent, clickEndEvent) =
+            clickEvent model.isTouchDevice
 
       in
         button
           [ classList className
-          , on event.start Json.value (\_ -> Signal.message address (SetProject project.id))
+          , on clickStartEvent Json.value (\_ -> Signal.message address (SetProject project.id))
           ]
           [ i [ class "fa fa-server icon" ] []
           , text  <| " " ++ project.name
@@ -484,13 +486,14 @@ view address model =
             then NoOp
             else AddDigit digit
 
-        event = clickEvent model.isTouchDevice
+        (clickStartEvent, clickEndEvent) =
+            clickEvent model.isTouchDevice
 
       in
         button
           [ classList className
-          , on event.start Json.value (\_ -> Signal.message address (action digit))
-          , on event.end Json.value (\_ -> Signal.message address UnsetPressedButton)
+          , on clickStartEvent Json.value (\_ -> Signal.message address (action digit))
+          , on clickEndEvent Json.value (\_ -> Signal.message address UnsetPressedButton)
           , disabled disable
           ]
           [ text <| toString digit ]
@@ -513,13 +516,14 @@ view address model =
             then NoOp
             else DeleteDigit
 
-        event = clickEvent model.isTouchDevice
+        (clickStartEvent, clickEndEvent) =
+            clickEvent model.isTouchDevice
 
       in
         button
           [ classList className
-          , on event.start Json.value (\_ -> Signal.message address action)
-          , on event.end Json.value (\_ -> Signal.message address UnsetPressedButton)
+          , on clickStartEvent Json.value (\_ -> Signal.message address action)
+          , on clickEndEvent Json.value (\_ -> Signal.message address UnsetPressedButton)
           , disabled disable
           ]
           [ i [ class "fa fa-long-arrow-left" ] [] ]
