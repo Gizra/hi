@@ -57,7 +57,7 @@ type alias Model =
   , projects : List Project
   , selectedProject : Int
   , isTouchDevice : Bool
-  , activeButton : Maybe Int
+  , pressedButton : Maybe Int
   }
 
 initialModel : Model
@@ -75,7 +75,7 @@ initialModel =
     ]
   , selectedProject = 0
   , isTouchDevice = False
-  , activeButton = Nothing
+  , pressedButton = Nothing
   }
 
 init : (Model, Effects Action)
@@ -100,8 +100,8 @@ type Action
   | UpdateDataFromServer (Result Http.Error Response)
   | SetProject Int
   | SetTouchDevice Bool
-  | UnsetActiveButton
-  | SetActiveButton Int
+  | UnsetPressedButton
+  | SetPressedButton Int
 
 
 update : Action -> Model -> (Model, Effects Action)
@@ -115,7 +115,7 @@ update action model =
             else model.pincode
 
         defaultEffect =
-          [ Task.succeed (SetActiveButton digit) |> Effects.task ]
+          [ Task.succeed (SetPressedButton digit) |> Effects.task ]
 
         effects' =
           -- Calling submit code when pincode length is one less than the needed
@@ -147,7 +147,7 @@ update action model =
         ( { model
           | pincode <- pincode'
           }
-        , Task.succeed (SetActiveButton -1) |> Effects.task
+        , Task.succeed (SetPressedButton -1) |> Effects.task
         )
 
     SubmitCode ->
@@ -241,13 +241,13 @@ update action model =
         , Effects.none
         )
 
-    UnsetActiveButton ->
-      ( { model | activeButton <- Nothing }
+    UnsetPressedButton ->
+      ( { model | pressedButton <- Nothing }
       , Effects.none
       )
 
-    SetActiveButton val ->
-      ( { model | activeButton <- Just val }
+    SetPressedButton val ->
+      ( { model | pressedButton <- Just val }
       , Effects.none
       )
 
@@ -276,7 +276,7 @@ getErrorMessageFromHttpResponse error =
 
 isButtonPressed : Int -> Model -> Bool
 isButtonPressed id model =
-  case model.activeButton of
+  case model.pressedButton of
     Just val -> id == val
     Nothing -> False
 
@@ -475,7 +475,7 @@ view address model =
         button
           [ classList className
           , on "touchstart" Json.value (\_ -> Signal.message address (AddDigit digit))
-          , on "touchend" Json.value (\_ -> Signal.message address UnsetActiveButton)
+          , on "touchend" Json.value (\_ -> Signal.message address UnsetPressedButton)
           , disabled disable
           ]
           [ text <| toString digit ]
@@ -497,7 +497,7 @@ view address model =
         button
             [ classList className
             , on "touchstart" Json.value (\_ -> Signal.message address DeleteDigit)
-            , on "touchend" Json.value (\_ -> Signal.message address UnsetActiveButton)
+            , on "touchend" Json.value (\_ -> Signal.message address UnsetPressedButton)
             , disabled deleteDisable
             ]
             [ i [ class "fa fa-long-arrow-left" ] [] ]
