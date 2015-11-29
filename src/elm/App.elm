@@ -92,18 +92,16 @@ pincodeLength = 4
 type Action
   = AddDigit Int
   | DeleteDigit
-  | Reset
+  | NoOp
   | SetDate Time.Time
+  | SetProject Int
   | SetMessage Message
+  | SetTouchDevice Bool
+  | SetPressedButton Int
   | SubmitCode
   | Tick
   | UpdateDataFromServer (Result Http.Error Response)
-  | SetProject Int
-  | SetTouchDevice Bool
   | UnsetPressedButton
-  | SetPressedButton Int
-  | NoOp
-
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
@@ -151,14 +149,10 @@ update action model =
         , Task.succeed (SetPressedButton -1) |> Effects.task
         )
 
-    SubmitCode ->
-      let
-        url = Config.backendUrl ++ "/api/v1.0/timewatch-punch"
-        projectId = toString model.selectedProject
-      in
-        ( { model | status <- Fetching }
-        , getJson url Config.accessToken model.pincode projectId
-        )
+    NoOp ->
+      ( model
+      , Effects.none
+      )
 
     SetDate time ->
         ( { model
@@ -168,10 +162,42 @@ update action model =
         , Effects.none
         )
 
+    SetProject projectId ->
+      let
+        id =
+          case model.selectedProject of
+            -- In case we want to disable the current selected project.
+            Just val -> Nothing
+            -- In case we have no selecte project and want to assign one.
+            Nothing -> Just projectId
+      in
+        ( { model | selectedProject <- id }
+        , Effects.none
+        )
+
+    SetMessage message ->
+      ( { model | message <- message }
+      , Effects.none
+      )
+
     SetTouchDevice val ->
       ( { model | isTouchDevice <- val }
       , Effects.none
       )
+
+    SetPressedButton val ->
+      ( { model | pressedButton <- Just val }
+      , Effects.none
+      )
+
+    SubmitCode ->
+      let
+        url = Config.backendUrl ++ "/api/v1.0/timewatch-punch"
+        projectId = toString model.selectedProject
+      in
+        ( { model | status <- Fetching }
+        , getJson url Config.accessToken model.pincode projectId
+        )
 
     Tick ->
       let
@@ -223,37 +249,8 @@ update action model =
             , Task.succeed (SetMessage <| Error message) |> Effects.task
             )
 
-    SetMessage message ->
-      ( { model | message <- message }
-      , Effects.none
-      )
-
-    SetProject projectId ->
-      let
-        id =
-          case model.selectedProject of
-            -- In case we want to disable the current selected project.
-            Just val -> Nothing
-            -- In case we have no selecte project and want to assign one.
-            Nothing -> Just projectId
-
-      in
-        ( { model | selectedProject <- id }
-        , Effects.none
-        )
-
     UnsetPressedButton ->
       ( { model | pressedButton <- Nothing }
-      , Effects.none
-      )
-
-    SetPressedButton val ->
-      ( { model | pressedButton <- Just val }
-      , Effects.none
-      )
-
-    NoOp ->
-      ( model
       , Effects.none
       )
 
