@@ -289,11 +289,11 @@ isButtonPressed id pressedButoon =
     Nothing -> False
 
 
-clickEvent: Bool -> String
+clickEvent: Bool -> { start : String, end : String }
 clickEvent isTouchDevice =
   if isTouchDevice
-    then "touchstart"
-    else "mousedown"
+    then { start = "touchstart", end = "touchend" }
+    else { start = "mousedown", end = "mouseup" }
 
 -- VIEW
 view : Signal.Address Action -> Model -> Html
@@ -458,7 +458,7 @@ view address model =
       in
         button
           [ classList className
-          , on event Json.value (\_ -> Signal.message address (SetProject project.id))
+          , on event.start Json.value (\_ -> Signal.message address (SetProject project.id))
           ]
           [ i [ class "fa fa-server icon" ] []
           , text  <| " " ++ project.name
@@ -484,11 +484,13 @@ view address model =
             then NoOp
             else AddDigit digit
 
+        event = clickEvent model.isTouchDevice
+
       in
         button
           [ classList className
-          , on "touchstart" Json.value (\_ -> Signal.message address (action digit))
-          , on "touchend" Json.value (\_ -> Signal.message address UnsetPressedButton)
+          , on event.start Json.value (\_ -> Signal.message address (action digit))
+          , on event.end Json.value (\_ -> Signal.message address UnsetPressedButton)
           , disabled disable
           ]
           [ text <| toString digit ]
@@ -511,11 +513,13 @@ view address model =
             then NoOp
             else DeleteDigit
 
+        event = clickEvent model.isTouchDevice
+
       in
         button
           [ classList className
-          , on "touchstart" Json.value (\_ -> Signal.message address action)
-          , on "touchend" Json.value (\_ -> Signal.message address UnsetPressedButton)
+          , on event.start Json.value (\_ -> Signal.message address action)
+          , on event.end Json.value (\_ -> Signal.message address UnsetPressedButton)
           , disabled disable
           ]
           [ i [ class "fa fa-long-arrow-left" ] [] ]
