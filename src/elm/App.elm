@@ -102,6 +102,7 @@ type Action
   | SetTouchDevice Bool
   | UnsetPressedButton
   | SetPressedButton Int
+  | NoAction
 
 
 update : Action -> Model -> (Model, Effects Action)
@@ -251,6 +252,11 @@ update action model =
       , Effects.none
       )
 
+    NoAction ->
+      ( model
+      , Effects.none
+      )
+
 
 getErrorMessageFromHttpResponse : Http.Error -> String
 getErrorMessageFromHttpResponse error =
@@ -298,7 +304,7 @@ view address model =
       in
         div
           [ class "col-xs-2 main-header led text-center" ]
-          [ span [ class <| "light " ++ className ] []]
+          [ span [ class <| "light -on" ] []]
 
 
     pincodeText delta =
@@ -472,11 +478,15 @@ view address model =
             then True
             else False
 
+        action digit =
+          if disable
+            then NoAction
+            else AddDigit digit
 
       in
         button
           [ classList className
-          , on "touchstart" Json.value (\_ -> Signal.message address (AddDigit digit))
+          , on "touchstart" Json.value (\_ -> Signal.message address (action digit))
           , on "touchend" Json.value (\_ -> Signal.message address UnsetPressedButton)
           , disabled disable
           ]
@@ -490,17 +500,22 @@ view address model =
           , ("-active", isButtonPressed -1 model.pressedButton)
           ]
 
-        deleteDisable =
+        disable =
           if ( length model.pincode == 0 || model.status == Fetching )
             then True
             else False
 
+        action =
+          if disable
+            then NoAction
+            else DeleteDigit
+
       in
         button
           [ classList className
-          , on "touchstart" Json.value (\_ -> Signal.message address DeleteDigit)
+          , on "touchstart" Json.value (\_ -> Signal.message address action)
           , on "touchend" Json.value (\_ -> Signal.message address UnsetPressedButton)
-          , disabled deleteDisable
+          , disabled disable
           ]
           [ i [ class "fa fa-long-arrow-left" ] [] ]
 

@@ -4,7 +4,7 @@ backendUrl : String
 backendUrl = "http://192.168.1.27/productivity/www"
 
 accessToken : String
-accessToken = "ASSzxNeOcQ_0XZS36IU5WPZBXZdeja-o96dci8jbbnA"
+accessToken = "SujuZGJMeSX2yRwcqRpXX6RtF2LJPY6Q2QBXovA-5Uc"
 
 project =
   { name = "Negawatt project"
