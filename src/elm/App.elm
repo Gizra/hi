@@ -55,7 +55,7 @@ type alias Model =
   , date : Maybe Time.Time
   , connected : Bool
   , projects : List Project
-  , selectedProject : Int
+  , selectedProject : Maybe Int
   , isTouchDevice : Bool
   , pressedButton : Maybe Int
   }
@@ -73,7 +73,7 @@ initialModel =
       , id = .id Config.project
       }
     ]
-  , selectedProject = 0
+  , selectedProject = Nothing
   , isTouchDevice = False
   , pressedButton = Nothing
   }
@@ -230,11 +230,11 @@ update action model =
     SetProject projectId ->
       let
         id =
-          if projectId == model.selectedProject
+          case model.selectedProject of
             -- In case we want to disable the current selected project.
-            then 0
-            -- In case we want to select a project.
-            else projectId
+            Just val -> Nothing
+            -- In case we have no selecte project and want to assign one.
+            Nothing -> Just projectId
 
       in
         ( { model | selectedProject <- id }
@@ -445,7 +445,7 @@ view address model =
       let
         className =
           [ ("-with-icon clear-btn project", True)
-          , ("-active", project.id == model.selectedProject)
+          , ("-active", isButtonPressed project.id model.selectedProject)
           ]
 
       in
@@ -497,41 +497,41 @@ view address model =
 
       in
         button
-            [ classList className
-            , on "touchstart" Json.value (\_ -> Signal.message address DeleteDigit)
-            , on "touchend" Json.value (\_ -> Signal.message address UnsetPressedButton)
-            , disabled deleteDisable
-            ]
-            [ i [ class "fa fa-long-arrow-left" ] [] ]
+          [ classList className
+          , on "touchstart" Json.value (\_ -> Signal.message address DeleteDigit)
+          , on "touchend" Json.value (\_ -> Signal.message address UnsetPressedButton)
+          , disabled deleteDisable
+          ]
+          [ i [ class "fa fa-long-arrow-left" ] [] ]
 
 
     padButtons =
-        div
-          [ class "numbers-pad" ]
-          [ span [] ( List.map digitButton [0..9] |> List.reverse )
-          , deleteButton
-          ]
+      div
+        [ class "numbers-pad" ]
+        [ span [] ( List.map digitButton [0..9] |> List.reverse )
+        , deleteButton
+        ]
 
   in
     div
-        [ class "container" ]
-        [ div
-            [ class "row dashboard" ]
-            [ pincode
-            , date
-            , ledLight
-            , div
-                [ class "col-xs-5 text-center" ]
-                [ projects, padButtons ]
-            , message
-            ]
-        -- Debug
+      [ class "container" ]
+      [ div
+        [ class "row dashboard" ]
+        [ pincode
+        , date
+        , ledLight
         , div
-            [ class "model-debug" ]
-            [ text <| toString model
-            , (viewMessage model.message)
-            ]
+          [ class "col-xs-5 text-center" ]
+          [ projects, padButtons ]
+        , message
         ]
+      -- Debug
+      , div
+          [ class "model-debug" ]
+          [ text <| toString model
+          , (viewMessage model.message)
+          ]
+      ]
 
 
 viewMessage : Message -> Html
