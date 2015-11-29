@@ -536,6 +536,14 @@ view address model =
         , deleteButton
         ]
 
+
+    debugBlock =
+      div
+        [ class "model-debug", hidden (not Config.debugMode) ]
+        [ text <| toString model
+        , (viewMessage model.message)
+        ]
+
   in
     div
       [ class "container" ]
@@ -549,12 +557,7 @@ view address model =
               [ projects, padButtons ]
           , message
           ]
-      -- Debug
-      , div
-          [ class "model-debug", hidden (not Config.debugMode) ]
-          [ text <| toString model
-          , (viewMessage model.message)
-          ]
+      , debugBlock
       ]
 
 
