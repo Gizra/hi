@@ -251,6 +251,7 @@ update action model =
       , Effects.none
       )
 
+
 getErrorMessageFromHttpResponse : Http.Error -> String
 getErrorMessageFromHttpResponse error =
   case error of
@@ -274,14 +275,15 @@ getErrorMessageFromHttpResponse error =
     _ ->
       "Unexpected error: " ++ toString error
 
-isButtonPressed : Int -> Model -> Bool
-isButtonPressed id model =
-  case model.pressedButton of
+
+isButtonPressed : Int -> Maybe Int -> Bool
+isButtonPressed id pressedButoon =
+  case pressedButoon of
     Just val -> id == val
     Nothing -> False
 
--- VIEW
 
+-- VIEW
 view : Signal.Address Action -> Model -> Html
 view address model =
   let
@@ -462,7 +464,7 @@ view address model =
         className =
           [ ("clear-btn digit", True)
           , ("-double", digit == 0)
-          , ("-active", isButtonPressed digit model)
+          , ("-active", isButtonPressed digit model.pressedButton)
           ]
 
         disable =
@@ -485,7 +487,7 @@ view address model =
       let
         className =
           [ ("clear-btn -delete", True)
-          , ("-active", isButtonPressed -1 model)
+          , ("-active", isButtonPressed -1 model.pressedButton)
           ]
 
         deleteDisable =
