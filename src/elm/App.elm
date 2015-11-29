@@ -40,6 +40,7 @@ type alias Response =
   { employee : String
   , start : Int
   , end : Maybe Int
+  , project : Maybe String
   }
 
 type alias Project =
@@ -197,6 +198,7 @@ update action model =
           case model.selectedProject of
             Just val -> toString val
             Nothing -> ""
+
       in
         ( { model | status <- Fetching }
         , getJson url Config.accessToken model.pincode projectId
@@ -599,10 +601,11 @@ dataToJson code projectId =
 decodeResponse : Json.Decoder Response
 decodeResponse =
   Json.at ["data"]
-    <| Json.object3 Response
+    <| Json.object4 Response
       ("employee" := Json.string)
       ("start" := Json.int)
       (Json.maybe ("end" := Json.int))
+      (Json.maybe ("project" := Json.string))
 
 
 getDate : Effects Action
