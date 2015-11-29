@@ -542,10 +542,10 @@ view address model =
         ]
       -- Debug
       , div
-          [ class "model-debug" ]
-          [ text <| toString model
-          , (viewMessage model.message)
-          ]
+        [ class "model-debug" ]
+        [ text <| toString model
+        , (viewMessage model.message)
+        ]
       ]
 
 
