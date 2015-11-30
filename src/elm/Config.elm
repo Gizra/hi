@@ -10,6 +10,6 @@ debugMode : Bool
 debugMode = True
 
 project =
-  { name = "Negawatt project"
-  , id = 33
+  { label = "Negawatt project"
+  , id = 7
   }

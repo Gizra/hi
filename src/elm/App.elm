@@ -44,7 +44,7 @@ type alias Response =
   }
 
 type alias Project =
-  { name : String
+  { label : String
   , id : Int
   }
 
@@ -70,7 +70,7 @@ initialModel =
   , date = Nothing
   , connected = False
   , projects = [
-      { name = .name Config.project
+      { label = .label Config.project
       , id = .id Config.project
       }
     ]
@@ -467,7 +467,7 @@ view address model =
           , on clickStartEvent Json.value (\_ -> Signal.message address (SetProject project.id))
           ]
           [ i [ class "fa fa-server icon" ] []
-          , text  <| " " ++ project.name
+          , text  <| " " ++ project.label
           ]
 
     projects = span [] (List.map projectsButtons model.projects)
