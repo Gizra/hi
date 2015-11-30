@@ -194,6 +194,7 @@ update action model =
     SubmitCode ->
       let
         url = Config.backendUrl ++ "/api/v1.0/timewatch-punch"
+
         projectId =
           case model.selectedProject of
             Just val -> toString val
@@ -239,6 +240,7 @@ update action model =
             ( { model
               | status <- Fetched operation
               , pincode <- ""
+              , selectedProject <- Nothing
               }
             , Task.succeed (SetMessage (Success message)) |> Effects.task
             )
