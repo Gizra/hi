@@ -94,6 +94,7 @@ type Action
   = AddDigit Int
   | DeleteDigit
   | NoOp
+  | Reset
   | SetDate Time.Time
   | SetProject Int
   | SetMessage Message
@@ -155,6 +156,11 @@ update action model =
       , Effects.none
       )
 
+    Reset ->
+        ( initialModel
+        , Effects.none
+        )
+
     SetDate time ->
         ( { model
           | tickStatus <- Ready
@@ -178,7 +184,7 @@ update action model =
 
     SetMessage message ->
       ( { model | message <- message }
-      , Effects.none
+      , setTimeOut 3500 Reset
       )
 
     SetTouchDevice val ->
@@ -228,7 +234,6 @@ update action model =
 
                 -- When the end date exist, it means the session was closed.
                 Just int -> Leave
-
 
             greeting =
               if operation == Enter then "Hi" else "Bye"
@@ -618,4 +623,10 @@ tick : Effects Action
 tick =
   Task.sleep (1 * Time.second)
     |> Task.map (\_ -> Tick)
+    |> Effects.task
+
+-- setTimeOut : Int -> Action ->  Effects Action
+setTimeOut milliseconds action =
+  Task.sleep milliseconds
+    |> Task.map (\_ -> action)
     |> Effects.task
