@@ -94,7 +94,6 @@ type Action
   = AddDigit Int
   | DeleteDigit
   | NoOp
-  | Reset
   | SetDate Time.Time
   | SetProject Int
   | SetMessage Message
@@ -156,11 +155,6 @@ update action model =
       , Effects.none
       )
 
-    Reset ->
-        ( initialModel
-        , Effects.none
-        )
-
     SetDate time ->
         ( { model
           | tickStatus <- Ready
@@ -184,7 +178,7 @@ update action model =
 
     SetMessage message ->
       ( { model | message <- message }
-      , setTimeOut 3500 Reset
+        , Effects.none
       )
 
     SetTouchDevice val ->
@@ -623,10 +617,4 @@ tick : Effects Action
 tick =
   Task.sleep (1 * Time.second)
     |> Task.map (\_ -> Tick)
-    |> Effects.task
-
--- setTimeOut : Int -> Action ->  Effects Action
-setTimeOut milliseconds action =
-  Task.sleep milliseconds
-    |> Task.map (\_ -> action)
     |> Effects.task
