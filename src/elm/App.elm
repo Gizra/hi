@@ -94,6 +94,7 @@ type Action
   = AddDigit Int
   | DeleteDigit
   | NoOp
+  | Reset
   | SetDate Time.Time
   | SetProject Int
   | SetMessage Message
@@ -155,6 +156,14 @@ update action model =
       , Effects.none
       )
 
+    Reset ->
+      ( { model
+        | status <- Init
+        , selectedProject <- Nothing
+        }
+      , Effects.none
+      )
+
     SetDate time ->
         ( { model
           | tickStatus <- Ready
@@ -178,7 +187,7 @@ update action model =
 
     SetMessage message ->
       ( { model | message <- message }
-        , Effects.none
+        , setTimeOut 3500 Reset
       )
 
     SetTouchDevice val ->
@@ -260,6 +269,11 @@ update action model =
       , Effects.none
       )
 
+-- setTimeOut : Int -> Action ->  Effects Action
+setTimeOut milliseconds action =
+  Task.sleep milliseconds
+    |> Task.map (\_ -> action)
+    |> Effects.task
 
 getErrorMessageFromHttpResponse : Http.Error -> String
 getErrorMessageFromHttpResponse error =
