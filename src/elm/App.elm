@@ -232,7 +232,11 @@ update action model =
             then Effects.batch [ getDate, (tick 1 Tick) ]
             else Effects.none
       in
-        ( { model | tickStatus <- Waiting }
+        ( { model
+          | tickStatus <- Waiting
+          -- Toggling connected (Bool) so the "ledLight" will blink every 1 sec.
+          , connected <- not (model.connected)
+          }
         , effects
         )
 
@@ -280,12 +284,6 @@ update action model =
       , Effects.none
       )
 
--- setTimeOut : Int -> Action ->  Effects Action
-setTimeOut milliseconds action =
-  Task.sleep milliseconds
-    |> Task.map (\_ -> action)
-    |> Effects.task
-
 getErrorMessageFromHttpResponse : Http.Error -> String
 getErrorMessageFromHttpResponse error =
   case error of
@@ -330,9 +328,16 @@ view address model =
   let
 
     ledLight =
-      div
-        [ class "col-xs-2 main-header led text-center" ]
-        [ span [ class "light -on" ] []]
+
+      let
+        className =
+          [ ("light", True)
+          , ("-on", model.connected)
+          ]
+      in
+        div
+          [ class "col-xs-2 main-header led text-center" ]
+          [ span [ classList className ] []]
 
 
     pincodeText delta =
